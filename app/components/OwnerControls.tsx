@@ -2,8 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createAuthClient } from "@neondatabase/auth/next";
-const authClient = createAuthClient();
+import { fetchClientJson } from "../lib/client-requests";
 export default function OwnerControls() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -11,8 +10,10 @@ export default function OwnerControls() {
   async function signOut() {
     setBusy(true); setError("");
     try {
-      const result = await authClient.signOut();
-      if (result.error) throw new Error("Sign out failed");
+      const result = await fetchClientJson<{ error?: unknown }>("/api/auth/sign-out", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      if (!result.response.ok || result.data?.error) throw new Error("Sign out failed");
       router.replace("/connexion");
       router.refresh();
     } catch { setError("La déconnexion a échoué. Réessayez."); setBusy(false); }

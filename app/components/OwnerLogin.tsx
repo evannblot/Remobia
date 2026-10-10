@@ -1,19 +1,27 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { createAuthClient } from "@neondatabase/auth/next";
+import { fetchClientJson } from "../lib/client-requests";
+import { ownerRedirect } from "../lib/owner-redirect.mjs";
 import { CatalogFooter, CatalogHeader } from "./PhoneCatalog";
 
-const authClient = createAuthClient();
-export default function OwnerLogin() {
+export default function OwnerLogin({ authOrigin }: { authOrigin: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function signIn() {
     setBusy(true); setError("");
     try {
-      await authClient.signOut();
-      const result = await authClient.signIn.social({ provider: "google", callbackURL: "/gestion/telephones" });
-      if (result.error) throw new Error("Authentication unavailable");
+      const previous = await fetchClientJson<{ error?: unknown }>("/api/auth/sign-out", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      if (!previous.response.ok || previous.data?.error) throw new Error("Sign out failed");
+      const result = await fetchClientJson<{ url?: unknown; error?: unknown }>("/api/auth/sign-in/social", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "google", callbackURL: new URL("/gestion/telephones", window.location.origin).href, disableRedirect: true }),
+      });
+      const target = ownerRedirect(result.data?.url, authOrigin);
+      if (!result.response.ok || result.data?.error || !target) throw new Error("Authentication unavailable");
+      window.location.assign(target);
     } catch { setError("La connexion n’a pas pu démarrer. Réessayez dans un instant."); setBusy(false); }
   }
   return <div className="catalog-site"><CatalogHeader management /><main className="container catalog-access" id="contenu">
