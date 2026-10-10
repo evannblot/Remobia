@@ -36,6 +36,20 @@ https://atelier-mobile-laval.clopinette-001.chatgpt.site
 
 La configuration et les commandes de migration locale sont détaillées dans [docs/SITES_SETUP.md](docs/SITES_SETUP.md). Les contrôles de disponibilité empêchent de déclarer un enregistrement ou un envoi réussi tant que les services requis ne sont pas configurés.
 
+## Publication sur Vercel
+
+Le fichier `vercel.json` compile les pages avec Next.js et conserve le parcours Vinext pour Sites. Pour vérifier cette compilation localement :
+
+```sh
+VERCEL=1 npx next build --webpack
+```
+
+Les pages publiques sont compatibles avec Vercel. L’envoi des devis peut être activé en renseignant `RESEND_API_KEY`, `QUOTE_FROM_EMAIL` et `QUOTE_TO_EMAIL` dans les variables privées du projet Vercel, avec un domaine expéditeur vérifié.
+
+La base D1, le stockage R2 et l’identité propriétaire fournie par Sites ne sont pas transférés à Vercel. Le catalogue dynamique, l’enregistrement des demandes de reprise et la gestion privée restent donc indisponibles sur cet hébergement tant que leur migration et une authentification propriétaire vérifiée ne sont pas réalisées. Les API renvoient un état indisponible plutôt qu’un faux succès. Les entêtes d’identité Sites reçues sur Vercel sont refusées, même si l’email propriétaire est configuré.
+
+Aucune donnée client ni photo privée n’est copiée lors de cette publication.
+
 ## Configuration privée
 
 Le fichier `.env.example` documente les variables avec des valeurs vides. Renseigner les valeurs localement dans `.dev.vars` ou dans les paramètres privés de l’hébergeur :

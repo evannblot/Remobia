@@ -336,7 +336,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
           </li>
         ))}
       </ol>
-      {available === false && <p className="qw-demo-notice">Version de présentation : vous pouvez préparer votre demande. L’envoi sera disponible à l’ouverture du service.</p>}
+      {available === false && <p className="qw-demo-notice" role="status">L’envoi des demandes de devis n’est pas encore activé. Vous pouvez préparer ce formulaire, mais votre demande ne sera pas envoyée.</p>}
       <p className="qw-eyebrow" aria-live="polite">Étape {step} sur 3 · Devis gratuit</p>
       <h2 ref={headingRef} tabIndex={-1}>{step === 1 ? "Quel téléphone souhaitez-vous réparer ?" : step === 2 ? "Que se passe-t-il ?" : "Où vous répondre ?"}</h2>
       <p className="qw-intro">{step === 1 ? "Pas besoin d’être un expert. Indiquez simplement ce que vous connaissez." : step === 2 ? "Sélectionnez un ou plusieurs problèmes et décrivez ce que vous constatez. Nous vous aiderons à trouver la bonne solution." : "Vérifiez votre demande et laissez vos coordonnées pour recevoir une réponse personnalisée."}</p>
@@ -416,7 +416,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
             {sending ? <><LoaderCircle size={18} className="qw-spinner" aria-hidden="true" />Envoi en cours…</> : step < 3 ? <>Continuer<ArrowRight size={17} aria-hidden="true" /></> : available === null ? <>Vérification du service…</> : available ? <>Envoyer ma demande gratuite<ArrowRight size={17} aria-hidden="true" /></> : <>Préparer ma demande<ArrowRight size={17} aria-hidden="true" /></>}
           </button>
         </div>
-        {step === 3 && <p className="qw-bottom-note">{available === false ? "Aucun email ne sera envoyé dans cette version de présentation." : "Le prix sera proposé après étude de votre demande. Aucun paiement à cette étape."}</p>}
+        {step === 3 && available !== false && <p className="qw-bottom-note">Le prix sera proposé après étude de votre demande. Aucun paiement à cette étape.</p>}
       </form>
     </div>
   );

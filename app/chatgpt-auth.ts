@@ -18,7 +18,13 @@ const SIGN_IN_PATH = "/signin-with-chatgpt";
 const SIGN_OUT_PATH = "/signout-with-chatgpt";
 const CALLBACK_PATH = "/callback";
 
+export function isVercelDeployment(): boolean {
+  return typeof process !== "undefined" && process.env.VERCEL !== undefined;
+}
+
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
+  // These headers are verified only by the Sites gateway, never by Vercel.
+  if (isVercelDeployment()) return null;
   const requestHeaders = await headers();
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
@@ -42,6 +48,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
 export async function requireChatGPTUser(
   returnTo: string,
 ): Promise<ChatGPTUser> {
+  if (isVercelDeployment()) redirect("/");
   const user = await getChatGPTUser();
   if (user) return user;
 

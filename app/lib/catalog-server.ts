@@ -40,6 +40,7 @@ function failure(error: unknown, privateResponse = false): Response {
 
 /** The hosted Sites gateway validates identity and injects these headers; service access alone has no visitor identity. */
 export function isCatalogAdmin(request: Request, bindings: CatalogBindings): boolean {
+  if (typeof process !== "undefined" && process.env.VERCEL !== undefined) return false;
   const expectedEmail = bindings.SITE_ADMIN_EMAIL?.trim().toLowerCase();
   const email = request.headers.get("oai-authenticated-user-email")?.trim().toLowerCase();
   const userId = request.headers.get("oai-authenticated-user-id")?.trim();
@@ -47,6 +48,9 @@ export function isCatalogAdmin(request: Request, bindings: CatalogBindings): boo
 }
 
 function authorizeAdmin(request: Request, bindings: CatalogBindings): void {
+  if (typeof process !== "undefined" && process.env.VERCEL !== undefined) {
+    throw new CatalogError("L’accès à la gestion est en cours de configuration.", 503);
+  }
   if (!request.headers.get("oai-authenticated-user-id") || !request.headers.get("oai-authenticated-user-email")) {
     throw new CatalogError("Connectez-vous pour gérer les téléphones.", 401);
   }
