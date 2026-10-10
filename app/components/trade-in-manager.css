@@ -1,0 +1,90 @@
+body.remobia-site .trade-in-manager-links { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+body.remobia-site .trade-in-manager-links > .quiet-link { font-size: 12px; }
+body.remobia-site .trade-in-manager-private { display: flex; gap: 12px; align-items: center; padding: 20px 0; border-block: 1px solid var(--line); margin-bottom: 28px; color: var(--ink); }
+body.remobia-site .trade-in-manager-private > svg { flex-shrink: 0; }
+body.remobia-site .trade-in-manager-private > p { color: var(--muted); font-size: 13px; line-height: 1.7; }
+body.remobia-site .trade-in-request-list { margin-top: 30px; }
+body.remobia-site .trade-in-request-list .catalog-list-heading > div > p { font-size: 12px; color: var(--muted); margin-top: 7px; }
+body.remobia-site .trade-in-request-list .catalog-list-heading > button { font-size: 12px; flex-shrink: 0; }
+body.remobia-site .trade-in-request-cards { display: flex; flex-direction: column; gap: 22px; }
+body.remobia-site .trade-in-request-card { border: 1px solid var(--line); background: var(--white); border-radius: 12px; overflow: hidden; }
+body.remobia-site .trade-in-request-heading { padding: 28px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+body.remobia-site .trade-in-request-heading > div { min-width: 0; }
+body.remobia-site .trade-in-request-reference { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+body.remobia-site .trade-in-request-heading h3 { font-size: 27px; line-height: 1.3; font-weight: 500; letter-spacing: -.5px; overflow-wrap: anywhere; margin-top: 9px; }
+body.remobia-site .trade-in-request-overview { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 8px; overflow-wrap: anywhere; }
+body.remobia-site .trade-in-request-customer { font-size: 13px; line-height: 1.7; margin-top: 12px; overflow-wrap: anywhere; }
+body.remobia-site .trade-in-request-customer strong { font-weight: 500; }
+body.remobia-site .trade-in-reply { flex-shrink: 0; font-size: 12px; padding: 13px 17px; }
+body.remobia-site .trade-in-request-details { border-top: 1px solid var(--line); }
+body.remobia-site .trade-in-request-details > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 18px 28px; font-size: 13px; line-height: 1.7; list-style: none; background: var(--paper); }
+body.remobia-site .trade-in-request-details > summary::-webkit-details-marker { display: none; }
+body.remobia-site .trade-in-request-details > summary > svg { flex-shrink: 0; transition: transform .2s; }
+body.remobia-site .trade-in-request-details[open] > summary > svg { transform: rotate(180deg); }
+body.remobia-site .trade-in-request-details > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+body.remobia-site .trade-in-request-detail-body { padding: 28px; border-top: 1px solid var(--line); }
+body.remobia-site .trade-in-request-data { display: grid; grid-template-columns: 1fr 1fr; gap: 38px; }
+body.remobia-site .trade-in-request-card h4 { font-size: 16px; line-height: 1.5; font-weight: 500; margin-bottom: 14px; }
+body.remobia-site .trade-in-request-data dl { margin: 0; }
+body.remobia-site .trade-in-request-data dl > div { display: grid; grid-template-columns: 1fr 1.15fr; gap: 15px; border-bottom: 1px solid var(--line); padding: 10px 0; font-size: 12px; line-height: 1.8; }
+body.remobia-site .trade-in-request-data dt { color: var(--muted); }
+body.remobia-site .trade-in-request-data dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+body.remobia-site .trade-in-request-data dd a { text-decoration: underline; text-underline-offset: 3px; }
+body.remobia-site .trade-in-request-text { margin-bottom: 28px !important; }
+body.remobia-site .trade-in-request-text > div { display: block !important; }
+body.remobia-site .trade-in-request-text dd { margin-top: 7px; }
+body.remobia-site .trade-in-reply-help { font-size: 11px; color: var(--muted); line-height: 1.8; margin-top: 14px; }
+body.remobia-site .trade-in-request-photos { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--line); }
+body.remobia-site .trade-in-request-photos > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+body.remobia-site .trade-in-request-photo { margin: 0; min-width: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+body.remobia-site .trade-in-request-photo > a { display: flex; align-items: center; justify-content: center; height: 300px; background: var(--paper); }
+body.remobia-site .trade-in-request-photo img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+body.remobia-site .trade-in-request-photo figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 13px 15px; font-size: 12px; border-top: 1px solid var(--line); }
+body.remobia-site .trade-in-request-photo figcaption > span { font-size: 10px; color: var(--muted); }
+body.remobia-site .trade-in-photo-error { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 20px; text-align: center; height: 300px; background: var(--paper); font-size: 12px; }
+body.remobia-site .trade-in-photo-error > p { color: var(--muted); line-height: 1.7; }
+body.remobia-site .trade-in-request-actions { padding: 16px 28px; display: flex; justify-content: flex-end; border-top: 1px solid var(--line); }
+body.remobia-site .trade-in-delete { font-size: 11px; color: #873b32; }
+body.remobia-site .trade-in-delete-confirm { padding: 22px 28px; border-top: 1px solid #e1c4bc; background: #f8ece7; display: flex; justify-content: space-between; align-items: center; gap: 25px; color: #7f332a; }
+body.remobia-site .trade-in-delete-confirm strong { font-size: 13px; font-weight: 500; }
+body.remobia-site .trade-in-delete-confirm p { font-size: 12px; line-height: 1.8; margin-top: 7px; max-width: 540px; }
+body.remobia-site .trade-in-delete-error { font-weight: 500; }
+body.remobia-site .trade-in-delete-confirm-buttons { display: flex; flex-shrink: 0; gap: 10px; }
+body.remobia-site .trade-in-delete-confirm .button { font-size: 11px; padding: 12px 14px; }
+body.remobia-site .trade-in-delete-button { background: #873b32; color: #fff; }
+body.remobia-site .trade-in-delete-button:hover { background: #703028; }
+body.remobia-site .trade-in-manager button:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 1000px) {
+  body.remobia-site .trade-in-delete-confirm { display: block; }
+  body.remobia-site .trade-in-delete-confirm-buttons { margin-top: 17px; }
+}
+@media (max-width: 720px) {
+  body.remobia-site .trade-in-manager-links { flex-wrap: wrap; gap: 0 16px; margin-bottom: 23px; }
+  body.remobia-site .trade-in-manager-links .catalog-back { margin-bottom: 12px; }
+  body.remobia-site .trade-in-manager-links > .quiet-link { font-size: 11px; margin-bottom: 12px; }
+  body.remobia-site .trade-in-manager-private { align-items: flex-start; padding-block: 17px; gap: 10px; }
+  body.remobia-site .trade-in-manager-private > p { font-size: 12px; }
+  body.remobia-site .trade-in-manager-private > svg { margin-top: 2px; }
+  body.remobia-site .trade-in-request-list .catalog-list-heading > button { font-size: 11px; }
+  body.remobia-site .trade-in-request-heading { display: block; padding: 21px 18px; }
+  body.remobia-site .trade-in-request-reference { font-size: 10px; }
+  body.remobia-site .trade-in-request-heading h3 { font-size: 25px; }
+  body.remobia-site .trade-in-request-overview, body.remobia-site .trade-in-request-customer { font-size: 12px; }
+  body.remobia-site .trade-in-reply { margin-top: 20px; font-size: 12px; }
+  body.remobia-site .trade-in-request-details > summary { padding: 16px 18px; font-size: 12px; }
+  body.remobia-site .trade-in-request-detail-body { padding: 23px 18px; }
+  body.remobia-site .trade-in-request-data { grid-template-columns: 1fr; gap: 27px; }
+  body.remobia-site .trade-in-request-card h4 { font-size: 15px; }
+  body.remobia-site .trade-in-request-data dl > div { gap: 10px; font-size: 12px; }
+  body.remobia-site .trade-in-request-photos { padding-top: 23px; margin-top: 26px; }
+  body.remobia-site .trade-in-request-photos > div { grid-template-columns: 1fr; gap: 17px; }
+  body.remobia-site .trade-in-request-photo > a, body.remobia-site .trade-in-photo-error { height: 280px; }
+  body.remobia-site .trade-in-request-photo figcaption { padding: 12px; }
+  body.remobia-site .trade-in-request-actions { padding: 15px 18px; justify-content: flex-start; }
+  body.remobia-site .trade-in-delete-confirm { padding: 20px 18px; }
+  body.remobia-site .trade-in-delete-confirm-buttons { flex-wrap: wrap; }
+  body.remobia-site .trade-in-delete-confirm .button { font-size: 11px; padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.remobia-site .trade-in-request-details > summary > svg { transition: none; }
+}

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791308867596,
+      "tag": "0000_married_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791356845267,
+      "tag": "0001_tearful_firedrake",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791572887266,
+      "tag": "0002_jittery_lady_bullseye",
+      "breakpoints": true
+    }
+  ]
+}
