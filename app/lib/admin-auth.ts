@@ -5,7 +5,8 @@ export function getOwnerAuth() {
   const baseUrl = process.env.NEON_AUTH_BASE_URL;
   const secret = process.env.NEON_AUTH_COOKIE_SECRET;
   if (!baseUrl || !secret || secret.length < 32) return null;
-  return createNeonAuth({ baseUrl, cookies: { secret, sessionDataTtl: 0 } });
+  // The SDK requires a positive TTL. Keep its signed cache very short.
+  return createNeonAuth({ baseUrl, cookies: { secret, sessionDataTtl: 1 } });
 }
 
 export type OwnerIdentity = { userId: string; email: string; verified: boolean };
