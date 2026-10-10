@@ -1,4 +1,5 @@
 "use client";
+import OwnerControls from "./OwnerControls";
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ImageIcon, Mail, RefreshCw, Smartphone, Trash2, X } from "lucide-react";
@@ -53,7 +54,7 @@ function RequestPhoto({ image, model }: { image: TradeInRequest["images"][number
   </figure>;
 }
 
-export default function TradeInManager() {
+export default function TradeInManager({ vercelOwner = false }: { vercelOwner?: boolean }) {
   const [requests, setRequests] = useState<TradeInRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -114,7 +115,7 @@ export default function TradeInManager() {
     }
   }
 
-  return <div className="catalog-site trade-in-manager"><CatalogHeader management /><main className="container manager-main" id="contenu">
+  return <div className="catalog-site trade-in-manager"><CatalogHeader management /><main className="container manager-main" id="contenu">{vercelOwner && <OwnerControls />}
     <div className="trade-in-manager-links"><a className="catalog-back" href="/"><ArrowLeft size={15} aria-hidden="true" />Revenir au site</a><a className="quiet-link" href="/gestion/telephones">Gérer mes annonces<ArrowRight size={15} aria-hidden="true" /></a></div>
     <div className="manager-intro"><div><p className="eyebrow">VOTRE ESPACE DE GESTION</p><h1>Les téléphones<br /><span>qu’on vous propose.</span></h1><p>Consultez les informations et les photos envoyées par les clients. Vous pouvez leur répondre par email pour demander une précision ou proposer votre estimation.</p></div></div>
     <div className="trade-in-manager-private"><Smartphone size={19} aria-hidden="true" /><p>Ces demandes et leurs photos sont privées. Elles ne sont pas affichées dans le catalogue de vente.</p></div>

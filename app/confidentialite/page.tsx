@@ -13,11 +13,13 @@ export default function Confidentialite() {
     <p>Lorsque vous envoyez une demande de reprise, vos coordonnées, les informations sur l’état du téléphone et les photos sont enregistrées sur le serveur du site. Elles permettent à REMOBIA d’étudier votre appareil à distance et de vous répondre. Les photos et les demandes sont accessibles uniquement au propriétaire connecté dans son espace de gestion ; elles ne sont pas publiées dans le catalogue.</p>
     <p>Vous pouvez choisir de ne pas envoyer le formulaire. Les fichiers sélectionnés restent alors dans la session du navigateur. Le responsable peut supprimer une demande et ses photos depuis son espace de gestion. Les modalités de contact et la durée de conservation seront précisées avant l’ouverture du site au public.</p>
     <h2>Les annonces de vente</h2>
-    <p>Les caractéristiques, prix, descriptions et photos ajoutés par le propriétaire sont enregistrés sur le serveur du site. Les annonces publiées apparaissent dans le catalogue. Les brouillons et les téléphones marqués comme vendus restent accessibles uniquement dans l’espace de gestion. Cet espace est réservé au compte du propriétaire connecté avec ChatGPT.</p>
+    <p>Les caractéristiques, prix, descriptions et photos ajoutés par le propriétaire sont enregistrés sur le serveur du site. Les annonces publiées apparaissent dans le catalogue. Les brouillons et les téléphones marqués comme vendus restent accessibles uniquement dans l’espace de gestion. Cet espace est réservé au compte vérifié du propriétaire. Sur Vercel, la connexion est gérée par Neon Auth via Google.</p>
     <h2>Quand l’envoi sera activé</h2>
     <p>Votre prénom, votre email, votre téléphone facultatif et les informations sur votre appareil ou le téléphone qui vous intéresse serviront à étudier votre demande et à vous répondre. Les coordonnées du responsable, le prestataire d’envoi, les durées de conservation et les modalités d’exercice de vos droits seront précisés ici avant l’ouverture au public.</p>
     <h2>Quelques bonnes habitudes</h2>
     <p>Les formulaires ne demandent aucun code de déverrouillage, mot de passe, identifiant de compte ni numéro de série. Décrivez uniquement votre besoin. Les photos doivent montrer l’appareil sans données personnelles visibles à l’écran.</p>
+    <h2>Hébergement et notifications</h2>
+    <p>Sur Vercel, les demandes de reprise sont conservées dans une base Neon et leurs photos dans un stockage privé Vercel Blob. Lorsque les notifications sont activées, Resend transmet les demandes à REMOBIA. Les photos de reprise sont consultables dans l’espace propriétaire et ne sont pas publiées. Pour contacter REMOBIA au sujet de vos informations : <a href="mailto:remobia.laval@gmail.com">remobia.laval@gmail.com</a>.</p>
     <h2>Navigation</h2>
     <p>Le site n’intègre pas d’outil de publicité ni de mesure d’audience. L’accès à la version privée est géré par la plateforme d’hébergement.</p>
   </main>;

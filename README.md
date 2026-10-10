@@ -46,7 +46,15 @@ VERCEL=1 npx next build --webpack
 
 Les pages publiques sont compatibles avec Vercel. L’envoi des devis peut être activé en renseignant `RESEND_API_KEY`, `QUOTE_FROM_EMAIL` et `QUOTE_TO_EMAIL` dans les variables privées du projet Vercel, avec un domaine expéditeur vérifié.
 
-La base D1, le stockage R2 et l’identité propriétaire fournie par Sites ne sont pas transférés à Vercel. Le catalogue dynamique, l’enregistrement des demandes de reprise et la gestion privée restent donc indisponibles sur cet hébergement tant que leur migration et une authentification propriétaire vérifiée ne sont pas réalisées. Les API renvoient un état indisponible plutôt qu’un faux succès. Les entêtes d’identité Sites reçues sur Vercel sont refusées, même si l’email propriétaire est configuré.
+Le déploiement Vercel utilise Neon Postgres et un stockage Vercel Blob **privé**. Les routes d’images rendent publiques uniquement les photos des annonces publiées ; les reprises, brouillons et annonces vendues nécessitent la session du propriétaire. La connexion Google est gérée par Neon Auth. L’email doit être vérifié et correspondre à `SITE_ADMIN_EMAIL`. Les entêtes d’identité Sites ne sont jamais considérées comme une preuve sur Vercel.
+
+Le déploiement exécute `scripts/migrate-vercel.mjs` avant la compilation pour appliquer `migrations/vercel/001_remobia.sql`. Cette migration crée le schéma dans une transaction et peut être relancée sans effacer les données. Un échec arrête le déploiement. Les transactions applicatives utilisent l’isolation Serializable. Les fichiers sont réencodés côté navigateur en JPEG, sans métadonnées EXIF, limités à 900 Kio chacun et quatre photos. Le serveur plafonne le corps multipart Vercel à 4 Mio.
+
+Configurer les variables privées de `.env.example`, puis redéployer. La disponibilité des reprises vérifie les tables nécessaires. L’envoi des emails reste désactivé tant que `EMAIL_DELIVERY_ENABLED=true` n’est pas configuré après une vérification réelle. L’expéditeur de test Resend ne permet d’envoyer qu’à l’adresse du compte Resend ; un domaine expéditeur vérifié permet les destinataires habituels.
+
+Une notification de reprise est ajoutée à une file durable dans la transaction de sauvegarde. L’envoi se fait après la réponse au client. Un échec laisse la demande et ses photos intactes. Les notifications en attente sont également retentées à l’ouverture authentifiée de la liste des reprises. Les devis utilisent une clé d’idempotence stable pour les nouvelles tentatives de la même demande (fenêtre Resend de 24 heures). Un timeout ne produit jamais un faux succès.
+
+Si une transaction Vercel a peut-être abouti mais que sa réponse a été perdue, ses nouvelles photos sont conservées pour éviter de casser une annonce sauvegardée. Une vérification ultérieure peut être nécessaire pour nettoyer des objets privés orphelins.
 
 Aucune donnée client ni photo privée n’est copiée lors de cette publication.
 
@@ -57,7 +65,7 @@ Le fichier `.env.example` documente les variables avec des valeurs vides. Rensei
 - `SITE_ADMIN_EMAIL` : compte propriétaire autorisé à gérer les annonces et les reprises.
 - `RESEND_API_KEY`, `QUOTE_FROM_EMAIL`, `QUOTE_TO_EMAIL` : envoi des demandes de réparation et des demandes d’informations par email.
 
-Les demandes de reprise sont enregistrées pour consultation dans l’espace propriétaire. Elles ne déclenchent actuellement aucune notification email automatique. Le bouton de réponse ouvre la messagerie du propriétaire.
+Les demandes de reprise sont enregistrées pour consultation dans l’espace propriétaire et déclenchent une notification lorsque le service email est activé. Les photos se consultent via le lien privé de l’espace propriétaire. Le bouton de réponse ouvre la messagerie du propriétaire.
 
 Aucune clé, base de données, photo client ou fichier de configuration privé n’est inclus dans ce dépôt. Le cache de compilation et les dépendances sont exclus. Aucun mot de passe, code de déverrouillage ou numéro IMEI n’est demandé par le formulaire de reprise.
 

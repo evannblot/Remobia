@@ -108,7 +108,7 @@ test("forged owner headers cannot reveal, erase, or download private trade-in su
       await handlers.DELETE(forgedRequest("DELETE"), id),
       await handlers.IMAGE_GET(forgedRequest(), id, "front"),
     ]) {
-      assert.equal(response.status, 403);
+      assert.equal(response.status, 503);
       assert.match(response.headers.get("cache-control"), /private.*no-store/);
     }
   });
@@ -128,4 +128,18 @@ test("forged owner headers cannot download a draft catalogue photo on Vercel", a
     assert.equal((await handlers.IMAGE_GET(forgedRequest(), id)).status, 404);
   });
   assert.equal(photoReads, 0);
+});
+
+test("configured Vercel management requires a verified matching session and never trusts gateway headers", async () => {
+  await withVercel("1", async () => {
+    const base = { SITE_ADMIN_EMAIL: "owner@example.test", OWNER_AUTH_CONFIGURED: true };
+    for (const identity of [null, { userId: "other", email: "other@example.test", verified: true }, { userId: "owner", email: "owner@example.test", verified: false }]) {
+      const bindings = { ...base, OWNER_IDENTITY: identity };
+      assert.equal(isCatalogAdmin(forgedRequest(), bindings), false);
+      assert.equal((await createCatalogHandlers(bindings).ADMIN_GET(forgedRequest())).status, identity ? 403 : 401);
+      assert.equal((await createTradeInHandlers(bindings).ADMIN_GET(forgedRequest())).status, identity ? 403 : 401);
+    }
+    assert.equal(isCatalogAdmin(forgedRequest(), { ...base, OWNER_IDENTITY: { userId: "owner", email: "OWNER@example.test", verified: true } }), true);
+    assert.equal(isCatalogAdmin(forgedRequest(), base), false);
+  });
 });

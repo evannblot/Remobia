@@ -4,10 +4,20 @@ export type CatalogBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
   SITE_ADMIN_EMAIL?: string;
+  OWNER_AUTH_CONFIGURED?: boolean;
+  OWNER_IDENTITY?: { userId: string; email: string; verified: boolean } | null;
+  TRADE_IN_NOTIFICATIONS_ENABLED?: boolean;
 };
 
 export const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
 export const MAX_CATALOG_BODY_BYTES = MAX_PHOTO_BYTES * 4 + 64 * 1024;
+export const MAX_VERCEL_UPLOAD_BODY_BYTES = 4 * 1024 * 1024;
+
+/** Leave room under Vercel's request limit for multipart boundaries and form fields. */
+export function uploadBodyLimit(sitesLimit: number): number {
+  return typeof process !== "undefined" && process.env.VERCEL !== undefined
+    ? MAX_VERCEL_UPLOAD_BODY_BYTES : sitesLimit;
+}
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const IMAGE_PATH_PATTERN = /^\/api\/phone-images\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie, oai-authenticated-user-id, oai-authenticated-user-email" };
@@ -40,7 +50,11 @@ function failure(error: unknown, privateResponse = false): Response {
 
 /** The hosted Sites gateway validates identity and injects these headers; service access alone has no visitor identity. */
 export function isCatalogAdmin(request: Request, bindings: CatalogBindings): boolean {
-  if (typeof process !== "undefined" && process.env.VERCEL !== undefined) return false;
+  if (typeof process !== "undefined" && process.env.VERCEL !== undefined) {
+    const identity = bindings.OWNER_IDENTITY;
+    return !!identity?.verified && !!identity.userId && !!bindings.SITE_ADMIN_EMAIL?.trim() &&
+      identity.email.trim().toLowerCase() === bindings.SITE_ADMIN_EMAIL.trim().toLowerCase();
+  }
   const expectedEmail = bindings.SITE_ADMIN_EMAIL?.trim().toLowerCase();
   const email = request.headers.get("oai-authenticated-user-email")?.trim().toLowerCase();
   const userId = request.headers.get("oai-authenticated-user-id")?.trim();
@@ -49,7 +63,10 @@ export function isCatalogAdmin(request: Request, bindings: CatalogBindings): boo
 
 function authorizeAdmin(request: Request, bindings: CatalogBindings): void {
   if (typeof process !== "undefined" && process.env.VERCEL !== undefined) {
-    throw new CatalogError("L’accès à la gestion est en cours de configuration.", 503);
+    if (!bindings.OWNER_AUTH_CONFIGURED || !bindings.SITE_ADMIN_EMAIL?.trim()) throw new CatalogError("L’accès à la gestion est en cours de configuration.", 503);
+    if (!bindings.OWNER_IDENTITY) throw new CatalogError("Connectez-vous pour gérer les téléphones.", 401);
+    if (!isCatalogAdmin(request, bindings)) throw new CatalogError("Cet espace est réservé au propriétaire de l’activité.", 403);
+    return;
   }
   if (!request.headers.get("oai-authenticated-user-id") || !request.headers.get("oai-authenticated-user-email")) {
     throw new CatalogError("Connectez-vous pour gérer les téléphones.", 401);
@@ -115,8 +132,10 @@ export function imageMime(bytes: Uint8Array): string | null {
 
 async function boundedFormData(request: Request): Promise<FormData> {
   if (!/^multipart\/form-data\s*;/i.test(request.headers.get("content-type") ?? "")) throw new CatalogError("Le format de l’annonce est incorrect.", 415);
+  const maximum = uploadBodyLimit(MAX_CATALOG_BODY_BYTES);
+  const sizeError = "Les photos dépassent la taille totale autorisée. Choisissez des images plus petites puis réessayez.";
   const contentLength = request.headers.get("content-length");
-  if (contentLength && (!/^\d+$/.test(contentLength) || Number(contentLength) > MAX_CATALOG_BODY_BYTES)) throw new CatalogError("Les photos dépassent la taille autorisée.", 413);
+  if (contentLength !== null && (!/^\d+$/.test(contentLength) || Number(contentLength) > maximum)) throw new CatalogError(sizeError, 413);
   if (!request.body) throw new CatalogError("L’annonce est vide.");
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -126,9 +145,9 @@ async function boundedFormData(request: Request): Promise<FormData> {
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
-      if (total > MAX_CATALOG_BODY_BYTES) {
+      if (total > maximum) {
         await reader.cancel();
-        throw new CatalogError("Les photos dépassent la taille autorisée.", 413);
+        throw new CatalogError(sizeError, 413);
       }
       chunks.push(value);
     }
@@ -255,6 +274,7 @@ export function createCatalogHandlers(bindings: CatalogBindings) {
     },
     async POST(request: Request): Promise<Response> {
       let uploaded: UploadedImage[] = [];
+      let attemptedCommit = false;
       try {
         authorizeAdmin(request, bindings);
         assertCatalogOrigin(request);
@@ -266,15 +286,18 @@ export function createCatalogHandlers(bindings: CatalogBindings) {
         uploaded = await uploadImages(bucket, id, photos);
         const insert = db.prepare("INSERT INTO phone_listings (id, brand, model, storage, color, condition, price_cents, battery, description, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
           .bind(id, listing.brand, listing.model, listing.storage, listing.color, listing.condition, listing.priceCents, listing.battery, listing.description, listing.status, now, now);
+        attemptedCommit = true;
         assertBatch(await db.batch([insert, ...uploaded.map((image, index) => imageInsert(db, id, image, index))]));
         return json({ phone: { ...listing, id, images: uploaded.map((image) => `/api/phone-images/${image.id}`), createdAt: now, updatedAt: now, version: 1 } }, 201, true);
       } catch (error) {
-        if (bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.map((image) => image.key));
+        // A lost database response can follow a commit; keep potentially saved photos.
+        if ((!attemptedCommit || typeof process === "undefined" || process.env.VERCEL === undefined) && bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.map((image) => image.key));
         return failure(error, true);
       }
     },
     async PUT(request: Request, id: string): Promise<Response> {
       let uploaded: UploadedImage[] = [];
+      let attemptedCommit = false;
       try {
         authorizeAdmin(request, bindings);
         assertCatalogOrigin(request);
@@ -296,13 +319,14 @@ export function createCatalogHandlers(bindings: CatalogBindings) {
           ...removed.map((image) => db.prepare("DELETE FROM phone_images WHERE id = ? AND phone_id = ? AND EXISTS (SELECT 1 FROM phone_listings WHERE id = ? AND write_token = ?)").bind(image.id, id, id, writeToken)),
           ...retained.map((image, index) => db.prepare("UPDATE phone_images SET position = ? WHERE id = ? AND phone_id = ? AND EXISTS (SELECT 1 FROM phone_listings WHERE id = ? AND write_token = ?)").bind(index, image.id, id, id, writeToken)),
           ...uploaded.map((image, index) => guardedImageInsert(db, id, image, retained.length + index, writeToken))];
+        attemptedCommit = true;
         const results = await db.batch(statements);
         assertBatch(results);
-        if (results[0]?.meta.changes !== 1) throw new CatalogError(CONFLICT_MESSAGE, 409);
+        if (results[0]?.meta.changes !== 1) { attemptedCommit = false; throw new CatalogError(CONFLICT_MESSAGE, 409); }
         await cleanupImages(bucket, removed.map((image) => image.object_key));
         return json({ phone: { ...listing, id, images: [...listing.images, ...uploaded.map((image) => `/api/phone-images/${image.id}`)], createdAt: current.phone.createdAt, updatedAt: now, version: expectedVersion! + 1 } }, 200, true);
       } catch (error) {
-        if (bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.map((image) => image.key));
+        if ((!attemptedCommit || typeof process === "undefined" || process.env.VERCEL === undefined) && bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.map((image) => image.key));
         return failure(error, true);
       }
     },

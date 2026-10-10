@@ -15,6 +15,7 @@ const environment = {
   RESEND_API_KEY: "re_" + "x".repeat(31),
 };
 const validQuote = {
+  requestId: "11111111-1111-4111-8111-111111111111",
   brand: "Apple", model: "iPhone 13", modelUnknown: false,
   issues: ["screen", "charging"], description: "La vitre est cassée et la charge s’interrompt.",
   quality: "advice", handoff: "discuss", name: "Client de test",
@@ -155,7 +156,7 @@ test("provider acceptance sends one plain-text notification with customer reply-
   const result = await response.json();
   assert.equal(response.status, 200);
   assert.equal(result.success, true);
-  assert.match(result.reference, /^AM-20261006-[0-9a-f]{8}$/); // Paris is already on the next day.
+  assert.match(result.reference, /^D-11111111-[0-9A-F]{12}$/);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, "https://api.resend.com/emails");
   const message = JSON.parse(calls[0].options.body);
@@ -167,7 +168,7 @@ test("provider acceptance sends one plain-text notification with customer reply-
   assert.ok(message.text.includes("<script>provided text</script>"));
   assert.equal(message.cc, undefined);
   assert.equal(message.bcc, undefined);
-  assert.equal(calls[0].options.headers["Idempotency-Key"], result.reference);
+  assert.match(calls[0].options.headers["Idempotency-Key"], /^quote-[0-9a-f]{64}$/);
 });
 
 test("provider failure or missing acceptance never returns success or provider diagnostics", async () => {
@@ -197,6 +198,22 @@ test("send timeout aborts the provider request and returns 502", async () => {
   }).POST(quoteRequest());
   assert.equal(aborted, true);
   assert.equal(response.status, 502);
+});
+
+test("retry keeps identical email body and idempotency key; a changed request has a different key", async () => {
+  const calls = [];
+  const handlers = createQuotesHandlers(environment, { fetcher: async (_url, options) => {
+    calls.push(options); return Response.json({ id: "synthetic-provider-id" });
+  } });
+  const first = await (await handlers.POST(quoteRequest())).json();
+  const retry = await (await handlers.POST(quoteRequest())).json();
+  assert.equal(first.reference, retry.reference);
+  assert.equal(calls[0].body, calls[1].body);
+  assert.equal(calls[0].headers["Idempotency-Key"], calls[1].headers["Idempotency-Key"]);
+  await handlers.POST(quoteRequest({ ...validQuote, description: "Un autre problème." }));
+  assert.notEqual(calls[0].headers["Idempotency-Key"], calls[2].headers["Idempotency-Key"]);
+  assert.equal((await handlers.POST(quoteRequest({ ...validQuote, requestId: "invalid" }))).status, 400);
+  assert.equal(calls.length, 3);
 });
 
 test("quote references use Paris dates and do not depend on a sequential counter", () => {

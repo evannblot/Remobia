@@ -119,6 +119,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
   const id = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const requestIdRef = useRef("");
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<FormData>(() => {
     const selected = initialIssueCode(initialIssue);
@@ -139,13 +140,13 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
-    setCanCopy(Boolean(navigator.clipboard?.writeText));
     fetchClientJson<unknown>("/api/quotes", { signal: controller.signal, cache: "no-store" }, { timeoutMs: 8000 })
       .then(({ response, data }) => {
         if (!response.ok) throw new Error("Service indisponible");
         if (active && !controller.signal.aborted) setAvailable(!!data && typeof data === "object" && "available" in data && data.available === true);
       })
-      .catch(() => { if (active) setAvailable(false); });
+      .catch(() => { if (active) setAvailable(false); })
+      .finally(() => { if (active) setCanCopy(Boolean(navigator.clipboard?.writeText)); });
     return () => { active = false; controller.abort(); };
   }, []);
 
@@ -212,6 +213,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          requestId: requestIdRef.current || (requestIdRef.current = crypto.randomUUID()),
           model: form.modelUnknown ? "" : form.model.trim(),
           description: form.description.trim(), name: form.name.trim(),
           email: form.email.trim(), phone: form.phone.trim(),

@@ -28,6 +28,7 @@ const HANDOFF_LABELS = {
 
 export type QuoteIssue = keyof typeof ISSUE_LABELS;
 export type QuoteInput = {
+  requestId: string;
   brand: string;
   model: string;
   modelUnknown: boolean;
@@ -42,6 +43,7 @@ export type QuoteInput = {
 };
 
 export type QuoteEnvironment = {
+  EMAIL_DELIVERY_ENABLED?: unknown;
   QUOTE_TO_EMAIL?: unknown;
   QUOTE_FROM_EMAIL?: unknown;
   RESEND_API_KEY?: unknown;
@@ -57,6 +59,7 @@ const TEXT_CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
 
 /** Availability checks syntax only; provider authentication is checked on send. */
 export function getEmailConfig(environment: QuoteEnvironment): EmailConfig | null {
+  if (environment.EMAIL_DELIVERY_ENABLED === false) return null;
   const { QUOTE_TO_EMAIL, QUOTE_FROM_EMAIL, RESEND_API_KEY } = environment;
   if (typeof QUOTE_TO_EMAIL !== "string" || typeof QUOTE_FROM_EMAIL !== "string" ||
       typeof RESEND_API_KEY !== "string") return null;
@@ -82,6 +85,9 @@ export function validateQuoteInput(payload: unknown): Validation {
     return { valid: false, error: "La demande doit être un objet JSON." };
   }
   const data = payload as Record<string, unknown>;
+  if (typeof data.requestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.requestId)) {
+    return { valid: false, error: "Rechargez le formulaire avant de réessayer." };
+  }
   // Reject bots rather than displaying a success when no message was sent.
   if (data.website !== undefined && (typeof data.website !== "string" || data.website.trim() !== "")) {
     return { valid: false, error: "Cette demande ne peut pas être envoyée." };
@@ -118,6 +124,7 @@ export function validateQuoteInput(payload: unknown): Validation {
   return {
     valid: true,
     quote: {
+      requestId: data.requestId.toLowerCase(),
       brand, model: data.modelUnknown ? "" : model, modelUnknown: data.modelUnknown,
       issues: [...new Set(data.issues)] as QuoteIssue[], description,
       quality: data.quality, handoff: data.handoff,
@@ -235,7 +242,10 @@ export function createQuotesHandlers(environment: QuoteEnvironment, options: {
       if (!config) {
         return jsonResponse({ error: "L’envoi des demandes de devis n’est pas encore disponible. Aucune demande n’a été envoyée." }, 503);
       }
-      const reference = createQuoteReference(options.now?.());
+      // Retries use the same logical message even after a client or provider timeout.
+      const identity = JSON.stringify({ quote: validation.quote, to: config.to, from: config.from });
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(identity))), byte => byte.toString(16).padStart(2, "0")).join("");
+      const reference = `D-${validation.quote.requestId.slice(0, 8).toUpperCase()}-${hash.slice(0, 12).toUpperCase()}`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), timeoutMs);
       try {
@@ -244,7 +254,7 @@ export function createQuotesHandlers(environment: QuoteEnvironment, options: {
           headers: {
             "Authorization": `Bearer ${config.apiKey}`,
             "Content-Type": "application/json",
-            "Idempotency-Key": reference,
+            "Idempotency-Key": `quote-${hash}`,
           },
           signal: controller.signal,
           body: JSON.stringify({

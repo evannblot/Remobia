@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { getOwnerAuth, getOwnerIdentity, ownerMatches } from "../../lib/admin-auth";
 import type { Metadata } from "next";
 import { env } from "cloudflare:workers";
 import { chatGPTSignOutPath, isVercelDeployment, requireChatGPTUser } from "../../chatgpt-auth";
@@ -9,7 +11,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ManagePhonesPage() {
   if (isVercelDeployment()) {
-    return <div className="catalog-site"><CatalogHeader management /><main className="container catalog-access" id="contenu"><p className="eyebrow">ESPACE DE GESTION</p><h1>Gestion en cours<br /><span>de configuration.</span></h1><p>L’espace propriétaire doit être sécurisé sur ce nouvel hébergement avant de pouvoir gérer les téléphones et leurs annonces.</p><a className="button button-primary" href="/telephones">Revenir aux téléphones</a></main><CatalogFooter management /></div>;
+    if (!getOwnerAuth()) return <main className="container catalog-access"><h1>Connexion en cours de configuration.</h1><a href="/">Revenir au site</a></main>;
+    const identity = await getOwnerIdentity();
+    if (!identity) redirect("/connexion");
+    if (!ownerMatches(identity, process.env.SITE_ADMIN_EMAIL)) return <main className="container catalog-access"><h1>Cet espace est réservé au propriétaire.</h1><p>Connectez-vous avec le compte Google de REMOBIA.</p><a href="/connexion">Changer de compte</a></main>;
+    return <PhoneManager vercelOwner />;
   }
   const user = await requireChatGPTUser("/gestion/telephones");
   const adminEmail = typeof env.SITE_ADMIN_EMAIL === "string" ? env.SITE_ADMIN_EMAIL.trim().toLowerCase() : "";

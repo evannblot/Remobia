@@ -2,7 +2,7 @@ import {
   TRADE_IN_ACCESSORIES, TRADE_IN_ANSWERS, TRADE_IN_CONDITIONS, TRADE_IN_DEFECTS, TRADE_IN_PHOTO_LIMIT,
   type TradeInDetails, type TradeInRequest,
 } from "./trade-in";
-import { imageMime, isCatalogAdmin, type CatalogBindings } from "./catalog-server";
+import { imageMime, isCatalogAdmin, uploadBodyLimit, type CatalogBindings } from "./catalog-server";
 import { isValidEmail } from "./email-validation.mjs";
 
 export const MAX_TRADE_IN_BODY_BYTES = TRADE_IN_PHOTO_LIMIT * 4 + 64 * 1024;
@@ -31,6 +31,12 @@ function requireBindings(bindings: CatalogBindings): { db: D1Database; bucket: R
   return { db: bindings.DB, bucket: bindings.BUCKET };
 }
 function authorizeAdmin(request: Request, bindings: CatalogBindings): void {
+  if (typeof process !== "undefined" && process.env.VERCEL !== undefined) {
+    if (!bindings.OWNER_AUTH_CONFIGURED || !bindings.SITE_ADMIN_EMAIL?.trim()) throw new TradeInError("L’accès à la gestion est en cours de configuration.", 503);
+    if (!bindings.OWNER_IDENTITY) throw new TradeInError("Connectez-vous pour consulter les demandes de reprise.", 401);
+    if (!isCatalogAdmin(request, bindings)) throw new TradeInError("Cet espace est réservé au propriétaire de l’activité.", 403);
+    return;
+  }
   if (!request.headers.get("oai-authenticated-user-id") || !request.headers.get("oai-authenticated-user-email")) {
     throw new TradeInError("Connectez-vous pour consulter les demandes de reprise.", 401);
   }
@@ -104,9 +110,11 @@ export function validateTradeInDetails(value: unknown): TradeInDetails {
 async function boundedFormData(request: Request): Promise<FormData> {
   const type = request.headers.get("content-type") ?? "";
   if (!/^multipart\/form-data\s*;/i.test(type)) throw new TradeInError("Le format de la demande est incorrect.", 415);
+  const maximum = uploadBodyLimit(MAX_TRADE_IN_BODY_BYTES);
+  const sizeError = "Les photos dépassent la taille totale autorisée. Choisissez des images plus petites puis réessayez.";
   const length = request.headers.get("content-length");
-  if (length !== null && (!/^\d+$/.test(length) || Number(length) > MAX_TRADE_IN_BODY_BYTES)) {
-    throw new TradeInError("Les photos dépassent la taille autorisée.", 413);
+  if (length !== null && (!/^\d+$/.test(length) || Number(length) > maximum)) {
+    throw new TradeInError(sizeError, 413);
   }
   if (!request.body) throw new TradeInError("La demande est vide.");
   const reader = request.body.getReader();
@@ -117,9 +125,9 @@ async function boundedFormData(request: Request): Promise<FormData> {
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
-      if (total > MAX_TRADE_IN_BODY_BYTES) {
+      if (total > maximum) {
         await reader.cancel();
-        throw new TradeInError("Les photos dépassent la taille autorisée.", 413);
+        throw new TradeInError(sizeError, 413);
       }
       chunks.push(value);
     }
@@ -224,7 +232,9 @@ export function createTradeInHandlers(bindings: CatalogBindings) {
         const images = uploaded.map((photo) => db.prepare("INSERT INTO trade_in_images (id, request_id, object_key, mime_type, side) SELECT ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM trade_in_requests WHERE id = ? AND state = 'active')")
           .bind(photo.id, id, photo.key, photo.mime, photo.side, id));
         attemptedCommit = true;
-        assertBatch(await db.batch([insert, ...images]));
+        const notifications = bindings.TRADE_IN_NOTIFICATIONS_ENABLED ? [db.prepare("INSERT INTO notification_outbox (id, kind, resource_id, created_at) SELECT ?, 'trade-in', ?, ? WHERE EXISTS (SELECT 1 FROM trade_in_requests WHERE id = ? AND state = 'active') ON CONFLICT(id) DO NOTHING")
+          .bind(`trade-in-${id}`, id, new Date().toISOString(), id)] : [];
+        assertBatch(await db.batch([insert, ...images, ...notifications]));
         const saved = await getByRequestId(db, details.requestId);
         if (!saved) throw new Error("Trade-in receipt missing");
         if (saved.id !== id) {
@@ -238,7 +248,8 @@ export function createTradeInHandlers(bindings: CatalogBindings) {
         if (attemptedCommit && submission && bindings.DB) {
           try {
             const saved = await getByRequestId(bindings.DB, submission.details.requestId);
-            safeToClean = !saved || saved.id !== submission.id;
+            safeToClean = saved ? saved.id !== submission.id :
+              typeof process === "undefined" || process.env.VERCEL === undefined;
             if (saved?.id === submission.id && saved.state === "active" && saved.fingerprint === submission.hash) {
               return receipt(saved, submission.hash);
             }
