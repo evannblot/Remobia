@@ -48,6 +48,8 @@ Les pages publiques sont compatibles avec Vercel. L’envoi des devis peut être
 
 Le déploiement Vercel utilise Neon Postgres et un stockage Vercel Blob **privé**. Les routes d’images rendent publiques uniquement les photos des annonces publiées ; les reprises, brouillons et annonces vendues nécessitent la session du propriétaire. La connexion Google est gérée par Neon Auth. L’email doit être vérifié et correspondre à `SITE_ADMIN_EMAIL`. Les entêtes d’identité Sites ne sont jamais considérées comme une preuve sur Vercel.
 
+Si Neon renvoie une origine OAuth différente de l’URL de base, déclarer son origine exacte dans `NEON_AUTH_REDIRECT_ORIGIN`. Elle doit appartenir au même endpoint et à la même région ; seul le chemin d’initialisation de connexion est accepté. Aucune origine générique `*.neon.tech` n’est autorisée.
+
 Le déploiement exécute `scripts/migrate-vercel.mjs` avant la compilation pour appliquer `migrations/vercel/001_remobia.sql`. Cette migration crée le schéma dans une transaction et peut être relancée sans effacer les données. Un échec arrête le déploiement. Les transactions applicatives utilisent l’isolation Serializable. Les fichiers sont réencodés côté navigateur en JPEG, sans métadonnées EXIF, limités à 900 Kio chacun et quatre photos. Le serveur plafonne le corps multipart Vercel à 4 Mio.
 
 Configurer les variables privées de `.env.example`, puis redéployer. La disponibilité des reprises vérifie les tables nécessaires. L’envoi des emails reste désactivé tant que `EMAIL_DELIVERY_ENABLED=true` n’est pas configuré après une vérification réelle. L’expéditeur de test Resend ne permet d’envoyer qu’à l’adresse du compte Resend ; un domaine expéditeur vérifié permet les destinataires habituels.

@@ -1,11 +1,16 @@
 import { createNeonAuth } from "@neondatabase/auth/next/server";
 import type { CatalogBindings } from "./catalog-server";
+import { neonRedirectOrigin } from "./owner-redirect.mjs";
 
 export function getOwnerAuthOrigin(): string | null {
   try {
     const url = new URL(process.env.NEON_AUTH_BASE_URL ?? "");
     return url.protocol === "https:" && !url.username && !url.password ? url.origin : null;
   } catch { return null; }
+}
+
+export function getOwnerAuthRedirectOrigin(): string | null {
+  return neonRedirectOrigin(process.env.NEON_AUTH_REDIRECT_ORIGIN, getOwnerAuthOrigin());
 }
 
 export function getOwnerAuth() {

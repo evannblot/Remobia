@@ -5,7 +5,7 @@ import { fetchClientJson } from "../lib/client-requests";
 import { ownerRedirect } from "../lib/owner-redirect.mjs";
 import { CatalogFooter, CatalogHeader } from "./PhoneCatalog";
 
-export default function OwnerLogin({ authOrigin }: { authOrigin: string }) {
+export default function OwnerLogin({ authOrigin, authRedirectOrigin }: { authOrigin: string; authRedirectOrigin?: string | null }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function signIn() {
@@ -19,7 +19,7 @@ export default function OwnerLogin({ authOrigin }: { authOrigin: string }) {
         method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: "google", callbackURL: new URL("/gestion/telephones", window.location.origin).href, disableRedirect: true }),
       });
-      const target = ownerRedirect(result.data?.url, authOrigin);
+      const target = ownerRedirect(result.data?.url, authOrigin, authRedirectOrigin);
       if (!result.response.ok || result.data?.error || !target) throw new Error("Authentication unavailable");
       window.location.assign(target);
     } catch { setError("La connexion n’a pas pu démarrer. Réessayez dans un instant."); setBusy(false); }
