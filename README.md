@@ -50,6 +50,8 @@ Le déploiement Vercel utilise Neon Postgres et un stockage Vercel Blob **privé
 
 Si Neon renvoie une origine OAuth différente de l’URL de base, déclarer son origine exacte dans `NEON_AUTH_REDIRECT_ORIGIN`. Elle doit appartenir au même endpoint et à la même région ; seul le chemin d’initialisation de connexion est accepté. Aucune origine générique `*.neon.tech` n’est autorisée.
 
+Si cette adresse alternative renvoie `endpoint not found`, renseigner l’URL canonique affichée dans la console Neon dans `NEON_AUTH_BASE_URL_OVERRIDE`. Le démarrage de connexion utilise alors cet hôte pour le seul chemin d’initialisation, après validation de l’alias exact du même endpoint. Les paramètres OAuth restent inchangés.
+
 Le déploiement exécute `scripts/migrate-vercel.mjs` avant la compilation pour appliquer `migrations/vercel/001_remobia.sql`. Cette migration crée le schéma dans une transaction et peut être relancée sans effacer les données. Un échec arrête le déploiement. Les transactions applicatives utilisent l’isolation Serializable. Les fichiers sont réencodés côté navigateur en JPEG, sans métadonnées EXIF, limités à 900 Kio chacun et quatre photos. Le serveur plafonne le corps multipart Vercel à 4 Mio.
 
 Configurer les variables privées de `.env.example`, puis redéployer. La disponibilité des reprises vérifie les tables nécessaires. L’envoi des emails reste désactivé tant que `EMAIL_DELIVERY_ENABLED=true` n’est pas configuré après une vérification réelle. L’expéditeur de test Resend ne permet d’envoyer qu’à l’adresse du compte Resend ; un domaine expéditeur vérifié permet les destinataires habituels.

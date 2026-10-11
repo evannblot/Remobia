@@ -18,9 +18,15 @@ export async function ownerLoginResponse(request, handler, authOrigin, alternate
     const exchange = (async () => {
       const response = await handler(post);
       const data = await response.json();
-      const target = ownerRedirect(data?.url, authOrigin, alternateOrigin);
-      if (!response.ok || data?.error || !target) return failure();
-      const redirectHeaders = new Headers({ Location: target, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
+      const approved = ownerRedirect(data?.url, authOrigin, alternateOrigin);
+      if (!response.ok || data?.error || !approved) return failure();
+      const target = new URL(approved);
+      // A connected Neon branch can emit an obsolete cluster alias. Only its explicitly
+      // declared init origin may use the canonical host from the branch's console.
+      // The endpoint, path and opaque OAuth query remain intact.
+      if (target.origin !== authOrigin && target.origin === alternateOrigin &&
+          target.pathname === '/neondb/auth/sign-in/social/init') target.host = new URL(authOrigin).host;
+      const redirectHeaders = new Headers({ Location: target.href, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' });
       for (const cookie of response.headers.getSetCookie()) redirectHeaders.append('Set-Cookie', cookie);
       return new Response(null, { status: 303, headers: redirectHeaders });
     })();

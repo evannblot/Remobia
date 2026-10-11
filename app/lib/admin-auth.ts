@@ -2,9 +2,13 @@ import { createNeonAuth } from "@neondatabase/auth/next/server";
 import type { CatalogBindings } from "./catalog-server";
 import { neonRedirectOrigin } from "./owner-redirect.mjs";
 
+function ownerAuthBaseUrl(): string | undefined {
+  return process.env.NEON_AUTH_BASE_URL_OVERRIDE || process.env.NEON_AUTH_BASE_URL;
+}
+
 export function getOwnerAuthOrigin(): string | null {
   try {
-    const url = new URL(process.env.NEON_AUTH_BASE_URL ?? "");
+    const url = new URL(ownerAuthBaseUrl() ?? "");
     return url.protocol === "https:" && !url.username && !url.password ? url.origin : null;
   } catch { return null; }
 }
@@ -14,7 +18,7 @@ export function getOwnerAuthRedirectOrigin(): string | null {
 }
 
 export function getOwnerAuth() {
-  const baseUrl = process.env.NEON_AUTH_BASE_URL;
+  const baseUrl = ownerAuthBaseUrl();
   const secret = process.env.NEON_AUTH_COOKIE_SECRET;
   if (!getOwnerAuthOrigin() || !baseUrl || !secret || secret.length < 32) return null;
   // The SDK requires a positive TTL. Keep its signed cache very short.

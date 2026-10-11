@@ -20,9 +20,17 @@ test('server OAuth navigation binds the callback to this site and preserves sepa
     return Response.json({ url: target, redirect: false }, { headers });
   }, authOrigin, alternate);
   assert.equal(result.status, 303);
-  assert.equal(result.headers.get('location'), target);
+  assert.equal(result.headers.get('location'), target.replace(alternate, authOrigin));
   assert.equal(result.headers.get('cache-control'), 'no-store');
   assert.equal(result.headers.getSetCookie().length, 2);
+});
+
+test('canonical provider and Google redirects are not altered', async () => {
+  for (const target of [authOrigin + '/neondb/auth/sign-in/social/init?state=synthetic',
+    'https://accounts.google.com/o/oauth2/v2/auth?state=synthetic']) {
+    const result = await ownerLoginResponse(request(), async () => Response.json({ url: target }), authOrigin, alternate);
+    assert.equal(result.headers.get('location'), target);
+  }
 });
 
 test('provider rejection, foreign redirect and stalled response return to a readable login error', async () => {
