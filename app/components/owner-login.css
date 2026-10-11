@@ -1,0 +1,11 @@
+.owner-code-panel { max-width: 490px; margin: 28px 0 24px; text-align: left; }
+.owner-code-panel form { display: grid; justify-items: start; gap: 12px; margin-bottom: 18px; }
+.owner-code-panel label { font-size: 15px; font-weight: 600; }
+.owner-code-panel input { width: 100%; max-width: 280px; padding: 16px 18px; border: 1px solid #c8c0cb; border-radius: 8px; background: #fffdf9; color: #251d2d; font: inherit; font-size: 22px; letter-spacing: .15em; }
+.owner-code-panel input:focus-visible { outline: 2px solid #251d2d; outline-offset: 3px; }
+.owner-code-panel .owner-code-hint { margin: 0 0 6px; font-size: 13px; line-height: 1.6; }
+.owner-code-panel .owner-code-notice, .owner-code-panel .owner-code-error { padding: 15px 18px; margin: 0 0 22px; border-radius: 8px; font-size: 14px; line-height: 1.7; }
+.owner-code-notice { background: #dce8df; color: #251d2d; }
+.owner-code-error { background: #f8e4df; color: #793526; }
+.owner-code-panel .button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 600px) { .owner-code-panel { max-width: 100%; } .owner-code-panel .button { width: 100%; justify-content: center; } }

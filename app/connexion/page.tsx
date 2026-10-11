@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: "Connexion propriétaire — REMOBIA"
 export default async function OwnerLoginPage({ searchParams }: { searchParams: Promise<{ erreur?: string }> }) {
   if (ownerMatches(await getOwnerIdentity(), process.env.SITE_ADMIN_EMAIL)) redirect("/gestion/telephones");
   const authOrigin = getOwnerAuthOrigin();
-  if (!getOwnerAuth() || !authOrigin) return <main className="container catalog-access"><h1>Connexion en cours de configuration.</h1><Link href="/">Revenir au site</Link></main>;
-  return <OwnerLogin error={(await searchParams).erreur === "connexion"} />;
+  const ownerEmail = process.env.SITE_ADMIN_EMAIL?.trim();
+  if (!getOwnerAuth() || !authOrigin || !ownerEmail) return <main className="container catalog-access"><h1>Connexion en cours de configuration.</h1><Link href="/">Revenir au site</Link></main>;
+  return <OwnerLogin ownerEmail={ownerEmail} error={(await searchParams).erreur === "connexion"} />;
 }

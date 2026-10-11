@@ -15,7 +15,7 @@ export default async function ManageTradeInsPage() {
     if (!getOwnerAuth()) return <main className="container catalog-access"><h1>Connexion en cours de configuration.</h1><a href="/">Revenir au site</a></main>;
     const identity = await getOwnerIdentity();
     if (!identity) redirect("/connexion");
-    if (!ownerMatches(identity, process.env.SITE_ADMIN_EMAIL)) return <main className="container catalog-access"><h1>Cet espace est réservé au propriétaire.</h1><p>Connectez-vous avec le compte Google de REMOBIA.</p><a href="/connexion">Changer de compte</a></main>;
+    if (!ownerMatches(identity, process.env.SITE_ADMIN_EMAIL)) return <main className="container catalog-access"><h1>Cet espace est réservé au propriétaire.</h1><p>Connectez-vous avec l’adresse email de REMOBIA.</p><a href="/connexion">Changer de compte</a></main>;
     return <TradeInManager vercelOwner />;
   }
   const user = await requireChatGPTUser("/gestion/reprises");
