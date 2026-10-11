@@ -26,7 +26,7 @@ function validate(contact: Contact): Errors {
   if (phone && (!/^\+?[0-9 ().-]{6,30}$/.test(phone) || phone.replace(/\D/g, "").length < 6 || phone.replace(/\D/g, "").length > 15)) {
     errors.phone = "Vérifiez le numéro de téléphone, ou laissez ce champ vide.";
   }
-  if (!contact.consent) errors.consent = "Votre accord est nécessaire pour pouvoir répondre à votre demande.";
+  if (!contact.consent) errors.consent = "Confirmez votre demande avant de continuer.";
   return errors;
 }
 
@@ -166,7 +166,7 @@ export default function PhoneInterest({ phone, onClose }: { phone: PhoneListing;
             <div className="pi-field"><label htmlFor={`${id}-phone`}>Téléphone <span>facultatif</span></label><input id={`${id}-phone`} name="phone" type="tel" autoComplete="tel" maxLength={30} value={contact.phone} onChange={(event) => update("phone", event.target.value)} aria-invalid={!!errors.phone} aria-describedby={errors.phone ? `${id}-phone-error` : undefined} />{errors.phone && <p className="pi-error" id={`${id}-phone-error`}>{errors.phone}</p>}</div>
             <div className="pi-field"><label htmlFor={`${id}-message`}>Votre message <span>facultatif</span></label><textarea id={`${id}-message`} name="message" maxLength={3000} rows={3} placeholder="Une question sur le téléphone, son état ou la remise à Laval ?" value={contact.message} onChange={(event) => update("message", event.target.value)} /></div>
             <div className="pi-honeypot" aria-hidden="true"><label htmlFor={`${id}-website`}>Site internet</label><input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" value={contact.website} onChange={(event) => update("website", event.target.value)} /></div>
-            <label className="pi-consent" htmlFor={`${id}-consent`}><input id={`${id}-consent`} name="consent" type="checkbox" checked={contact.consent} onChange={(event) => update("consent", event.target.checked)} aria-invalid={!!errors.consent} aria-describedby={errors.consent ? `${id}-consent-error` : undefined} /><span>J’accepte l’utilisation de mes coordonnées pour répondre à cette demande.</span></label>
+            <label className="pi-consent" htmlFor={`${id}-consent`}><input id={`${id}-consent`} name="consent" type="checkbox" checked={contact.consent} onChange={(event) => update("consent", event.target.checked)} aria-invalid={!!errors.consent} aria-describedby={errors.consent ? `${id}-consent-error` : undefined} /><span>Je demande à REMOBIA d’étudier ces informations pour me répondre. J’ai pris connaissance de la politique de confidentialité.</span></label>
             {errors.consent && <p className="pi-error" id={`${id}-consent-error`}>{errors.consent}</p>}
             <p className="pi-help">Vos coordonnées servent à cet échange. <a href="/confidentialite" target="_blank" rel="noreferrer">Confidentialité</a>.</p>
             </fieldset>

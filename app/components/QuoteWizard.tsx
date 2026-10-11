@@ -110,7 +110,7 @@ function validate(form: FormData, step: Step): Errors {
     if (phone && (!/^\+?[0-9 ().-]{6,30}$/.test(phone) || phone.replace(/\D/g, "").length < 6 || phone.replace(/\D/g, "").length > 15)) {
       errors.phone = "Vérifiez le numéro de téléphone, ou laissez ce champ vide.";
     }
-    if (!form.consent) errors.consent = "Votre accord est nécessaire pour pouvoir répondre à votre demande.";
+    if (!form.consent) errors.consent = "Confirmez votre demande avant de continuer.";
   }
   return errors;
 }
@@ -403,7 +403,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
               <div className="qw-field"><label htmlFor={`${id}-name`}>Prénom<span className="qw-required-note"> · obligatoire</span></label><input id={`${id}-name`} name="given-name" autoComplete="given-name" type="text" required maxLength={100} value={form.name} placeholder="Votre prénom" onChange={(event) => update("name", event.target.value)} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? `${id}-name-error` : undefined} />{errors.name && <p className="qw-error" id={`${id}-name-error`}>{errors.name}</p>}</div>
               <div className="qw-field"><label htmlFor={`${id}-email`}>Email<span className="qw-required-note"> · obligatoire</span></label><input id={`${id}-email`} name="email" autoComplete="email" inputMode="email" type="email" required maxLength={254} value={form.email} placeholder="vous@exemple.fr" onChange={(event) => update("email", event.target.value)} aria-invalid={Boolean(errors.email)} aria-describedby={`${id}-email-help${errors.email ? ` ${id}-email-error` : ""}`} /><p className="qw-field-help" id={`${id}-email-help`}>Nous vous répondrons à cette adresse.</p>{errors.email && <p className="qw-error" id={`${id}-email-error`}>{errors.email}</p>}</div>
               <div className="qw-field"><label htmlFor={`${id}-phone`}>Téléphone<span className="qw-required-note"> · facultatif</span></label><input id={`${id}-phone`} name="tel" autoComplete="tel" type="tel" maxLength={30} value={form.phone} placeholder="Pour faciliter un échange si besoin" onChange={(event) => update("phone", event.target.value)} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? `${id}-phone-error` : undefined} />{errors.phone && <p className="qw-error" id={`${id}-phone-error`}>{errors.phone}</p>}</div>
-              <label className="qw-checkbox-line qw-consent"><input type="checkbox" required checked={form.consent} onChange={(event) => update("consent", event.target.checked)} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? `${id}-consent-error` : undefined} /><span>J’accepte que mes coordonnées soient utilisées pour répondre à ma demande.</span></label>
+              <label className="qw-checkbox-line qw-consent"><input type="checkbox" required checked={form.consent} onChange={(event) => update("consent", event.target.checked)} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? `${id}-consent-error` : undefined} /><span>Je demande à REMOBIA d’étudier ces informations pour me répondre. J’ai pris connaissance de la politique de confidentialité.</span></label>
               {errors.consent && <p className="qw-error" id={`${id}-consent-error`}>{errors.consent}</p>}
               <p className="qw-privacy-note">Consultez notre <a href="/confidentialite" target="_blank" rel="noopener noreferrer">politique de confidentialité<span className="qw-sr-only"> (nouvel onglet)</span></a>.</p>
             </div>
