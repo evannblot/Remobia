@@ -16,7 +16,8 @@ const listing = {
   condition: "good", priceCents: 23900, battery: null, description: "Téléphone de test", status: "published", images: [],
   createdAt: "2026-10-06T00:00:00Z", updatedAt: "2026-10-06T00:00:00Z",
 };
-const interest = { phoneId: listing.id, name: "Camille", email: "camille@example.test", phone: "", message: "Est-il disponible ?", consent: true, website: "" };
+const interest = { requestId: "e77ddf35-198e-4f70-a40e-07488f14f960", phoneId: listing.id,
+  name: "Camille", email: "camille@example.test", phone: "", message: "Est-il disponible ?", consent: true, website: "" };
 function request(payload = interest, headers = {}) {
   return new Request("https://atelier.example.test/api/phone-interest", { method: "POST", headers: {
     "content-type": "application/json", origin: "https://atelier.example.test", ...headers,
@@ -25,7 +26,8 @@ function request(payload = interest, headers = {}) {
 const readPhone = async (id) => id === listing.id ? listing : null;
 
 test("invalid contact fields and honeypot are rejected", () => {
-  for (const invalid of [null, [], { ...interest, phoneId: "../../private" }, { ...interest, name: "X" },
+  for (const invalid of [null, [], { ...interest, requestId: undefined }, { ...interest, requestId: "invalid" },
+    { ...interest, phoneId: "../../private" }, { ...interest, name: "X" },
     { ...interest, name: "Camille\nBcc: other" }, { ...interest, email: ".camille@example.test" },
     { ...interest, email: "email@invalid" }, { ...interest, email: "camille@example.test\r\nInjected" },
     { ...interest, phone: "......" }, { ...interest, message: "x".repeat(3001) },
@@ -63,7 +65,7 @@ test("canonical listing data is reread; client price/title never enters the emai
   const result = await response.json();
   assert.equal(response.status, 200);
   assert.equal(result.success, true);
-  assert.match(result.reference, /^AMV-20261006-[0-9a-f]{8}$/);
+  assert.match(result.reference, /^AMV-E77DDF35-[0-9A-F]{12}$/);
   assert.equal(calls.length, 1);
   const email = JSON.parse(calls[0].options.body);
   assert.deepEqual(email.to, [environment.QUOTE_TO_EMAIL]);
@@ -72,7 +74,73 @@ test("canonical listing data is reread; client price/title never enters the emai
   assert.match(email.text, /239,00/);
   assert.ok(!email.text.includes("Fake phone"));
   assert.equal(email.html, undefined);
-  assert.equal(calls[0].options.headers["Idempotency-Key"], result.reference);
+  assert.match(calls[0].options.headers["Idempotency-Key"], /^phone-interest-[0-9a-f]{64}$/);
+});
+
+test("an accepted email whose response times out is deduplicated when the client retries", async () => {
+  const acceptedMessages = new Map();
+  const calls = [];
+  let attempt = 0;
+  const fetcher = async (_url, options) => {
+    const key = options.headers["Idempotency-Key"];
+    calls.push({ key, body: options.body });
+    const existing = acceptedMessages.get(key);
+    if (existing) {
+      assert.equal(options.body, existing.body, "A reused provider key must have the same complete email");
+      return Response.json({ id: existing.id });
+    }
+    acceptedMessages.set(key, { body: options.body, id: "accepted-synthetic-message" });
+    attempt++;
+    if (attempt === 1) {
+      // The provider accepts, but its reply never reaches the caller before timeout.
+      return new Promise((_resolve, reject) => options.signal.addEventListener("abort",
+        () => reject(new Error("Synthetic lost response")), { once: true }));
+    }
+    return Response.json({ id: "accepted-synthetic-message" });
+  };
+  const first = await createInterestHandlers(environment, { readPhone, fetcher, timeoutMs: 5 }).POST(request());
+  assert.equal(first.status, 502);
+  assert.equal((await first.json()).success, undefined);
+  // A fresh server instance models a later request landing on another Vercel worker.
+  const retried = await createInterestHandlers(environment, { readPhone, fetcher }).POST(request());
+  const retriedData = await retried.json();
+  assert.equal(retried.status, 200);
+  assert.equal(retriedData.success, true);
+  assert.equal(acceptedMessages.size, 1);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], calls[1]);
+  const confirmedAgain = await createInterestHandlers(environment, { readPhone, fetcher }).POST(request());
+  assert.equal((await confirmedAgain.json()).reference, retriedData.reference);
+  assert.equal(acceptedMessages.size, 1);
+});
+
+test("equivalent normalized input is stable; changed contact, listing or delivery content never reuses a key", async () => {
+  const calls = [];
+  const fetcher = async (_url, options) => { calls.push({ key: options.headers["Idempotency-Key"], body: options.body }); return Response.json({ id: "synthetic" }); };
+  const send = async (payload, phone = listing, config = environment) => {
+    const response = await createInterestHandlers(config, { readPhone: async () => phone, fetcher }).POST(request(payload));
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  const first = await send(interest);
+  const normalized = await send({ ...interest, requestId: interest.requestId.toUpperCase(), name: " Camille ", message: " Est-il disponible ? " },
+    { ...listing, updatedAt: "2027-01-01T00:00:00Z", version: 2, images: ["/unrelated-photo"] });
+  assert.equal(first.reference, normalized.reference);
+  assert.deepEqual(calls[0], calls[1]);
+  for (const [payload, phone, config] of [
+    [{ ...interest, requestId: "1da9c15f-33e9-4d05-b63d-10d2625d4abc" }, listing, environment],
+    [{ ...interest, message: "Puis-je le voir demain ?" }, listing, environment],
+    [{ ...interest, email: "other@example.test" }, listing, environment],
+    [interest, { ...listing, priceCents: 24900 }, environment],
+    [interest, { ...listing, model: "Galaxy S23" }, environment],
+    [interest, listing, { ...environment, QUOTE_TO_EMAIL: "new-owner@example.test" }],
+    [interest, listing, { ...environment, QUOTE_FROM_EMAIL: "new-sales@example.test" }],
+  ]) {
+    const changed = await send(payload, phone, config);
+    assert.notEqual(changed.reference, first.reference);
+    assert.notEqual(calls.at(-1).key, calls[0].key);
+  }
+  assert.equal(new Set(calls.slice(1).map(call => call.key)).size, calls.length - 1);
 });
 
 test("cross origin, oversized or malformed requests cannot send", async () => {

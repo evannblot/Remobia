@@ -34,6 +34,7 @@ export default function PhoneInterest({ phone, onClose }: { phone: PhoneListing;
   const id = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const requestIdRef = useRef("");
   const [contact, setContact] = useState<Contact>({ name: "", email: "", phone: "", message: "", consent: false, website: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [available, setAvailable] = useState<boolean | null>(null);
@@ -46,13 +47,13 @@ export default function PhoneInterest({ phone, onClose }: { phone: PhoneListing;
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
-    setCanCopy(Boolean(navigator.clipboard?.writeText));
     fetchClientJson<unknown>("/api/phone-interest", { cache: "no-store", signal: controller.signal }, { timeoutMs: 8000 })
       .then(({ response, data }) => {
         if (!response.ok) throw new Error("Unavailable");
         if (active && !controller.signal.aborted) setAvailable(!!data && typeof data === "object" && "available" in data && data.available === true);
       })
-      .catch(() => { if (active) setAvailable(false); });
+      .catch(() => { if (active) setAvailable(false); })
+      .finally(() => { if (active) setCanCopy(Boolean(navigator.clipboard?.writeText)); });
     return () => { active = false; controller.abort(); };
   }, []);
 
@@ -108,7 +109,8 @@ export default function PhoneInterest({ phone, onClose }: { phone: PhoneListing;
     try {
       const { response, data: raw } = await fetchClientJson<unknown>("/api/phone-interest", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...contact, phoneId: phone.id }),
+        body: JSON.stringify({ ...contact, phoneId: phone.id,
+          requestId: requestIdRef.current || (requestIdRef.current = crypto.randomUUID()) }),
       }, {
         timeoutMs: 20_000,
         timeoutMessage: "L’envoi n’a pas pu être confirmé dans le délai prévu. Vos réponses sont conservées. Réessayez dans quelques instants.",

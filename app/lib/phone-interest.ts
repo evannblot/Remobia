@@ -1,10 +1,11 @@
 import type { PhoneListing } from "./catalog";
-import { createQuoteReference, getEmailConfig, type QuoteEnvironment } from "./quotes";
+import { getEmailConfig, type QuoteEnvironment } from "./quotes";
 import { isValidEmail as validEmail } from "./email-validation.mjs";
 
 export const MAX_INTEREST_BODY_BYTES = 8 * 1024;
 
 export type PhoneInterestInput = {
+  requestId: string;
   phoneId: string;
   name: string;
   email: string;
@@ -27,6 +28,9 @@ export function validatePhoneInterest(payload: unknown): Validation {
     return { valid: false, error: "La demande doit être un objet JSON." };
   }
   const data = payload as Record<string, unknown>;
+  if (typeof data.requestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.requestId)) {
+    return { valid: false, error: "Rechargez le formulaire avant de réessayer." };
+  }
   if (data.website !== undefined && (typeof data.website !== "string" || data.website.trim() !== "")) {
     return { valid: false, error: "Cette demande ne peut pas être envoyée." };
   }
@@ -44,7 +48,7 @@ export function validatePhoneInterest(payload: unknown): Validation {
   }
   if (message === null) return { valid: false, error: "Votre message doit contenir au maximum 3 000 caractères." };
   if (data.consent !== true) return { valid: false, error: "Votre accord est nécessaire pour traiter la demande." };
-  return { valid: true, interest: { phoneId, name, email, phone, message, consent: true } };
+  return { valid: true, interest: { requestId: data.requestId.toLowerCase(), phoneId, name, email, phone, message, consent: true } };
 }
 
 class InterestRequestError extends Error {
@@ -132,13 +136,20 @@ export function createInterestHandlers(environment: QuoteEnvironment, options: {
       if (!phone || phone.status !== "published") {
         return json({ error: "Ce téléphone n’est plus disponible. Consultez les autres annonces." }, 409);
       }
-      const reference = createQuoteReference(options.now?.()).replace(/^AM-/, "AMV-");
+      // Preserve the exact logical email after an ambiguous response. Only listing
+      // fields present in the email affect its identity; unrelated edits do not.
+      const identity = JSON.stringify({ interest: validation.interest, to: config.to, from: config.from,
+        listing: { id: phone.id, brand: phone.brand, model: phone.model, storage: phone.storage,
+          color: phone.color, priceCents: phone.priceCents } });
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(identity))),
+        byte => byte.toString(16).padStart(2, "0")).join("");
+      const reference = `AMV-${validation.interest.requestId.slice(0, 8).toUpperCase()}-${hash.slice(0, 12).toUpperCase()}`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 10_000);
       try {
         const response = await fetcher("https://api.resend.com/emails", {
           method: "POST",
-          headers: { "Authorization": `Bearer ${config.apiKey}`, "Content-Type": "application/json", "Idempotency-Key": reference },
+          headers: { "Authorization": `Bearer ${config.apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `phone-interest-${hash}` },
           signal: controller.signal,
           body: JSON.stringify({ from: config.from, to: [config.to], reply_to: validation.interest.email,
             subject: `Intérêt pour un téléphone en vente — ${reference}`, text: interestEmail(validation.interest, phone, reference) }),
