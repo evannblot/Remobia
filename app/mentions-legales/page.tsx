@@ -1,5 +1,14 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { publicPageMetadata } from "../lib/site-config";
+
+export const metadata = publicPageMetadata(
+  "/mentions-legales",
+  "Mentions légales — REMOBIA",
+  "Informations sur REMOBIA, ses services de réparation, de vente et de reprise de téléphones à Laval, et l’hébergement du site.",
+  { index: false },
+);
+
 export default function MentionsLegales() {
   return <main className="legal-page">
     <Link href="/" className="legal-back"><ArrowLeft size={17} aria-hidden="true" />Retour au site</Link>

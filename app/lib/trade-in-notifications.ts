@@ -15,7 +15,7 @@ function message(row: Pending, details: TradeInDetails): string {
     "Description :", details.description || "Aucune précision", "Réparations antérieures :", details.repairs || "Non renseignées",
     `Accessoires : ${details.accessories.map(value => TRADE_IN_ACCESSORIES[value]).join(", ") || "Aucun signalé"}`, "",
     "Les photos de l’avant et de l’arrière sont disponibles dans votre espace propriétaire :",
-    "https://remobia-laval.vercel.app/gestion/reprises", "",
+    "https://remobia.com/gestion/reprises", "",
     "Répondez à cet email pour contacter directement le client. Cette demande gratuite n’engage pas le client à vendre.",
   ].join("\n");
 }

@@ -1,5 +1,13 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { publicPageMetadata } from "../lib/site-config";
+
+export const metadata = publicPageMetadata(
+  "/confidentialite",
+  "Confidentialité et données personnelles — REMOBIA",
+  "Comment REMOBIA utilise vos informations pour les demandes de devis, de reprise et de renseignements sur les téléphones.",
+  { index: false },
+);
 
 export default function Confidentialite() {
   return <main className="legal-page">

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { GOOGLE_SITE_VERIFICATION, publicPageMetadata, SITE_DESCRIPTION, SITE_URL, siteStructuredData } from "./lib/site-config";
 import "./globals.css";
 import "./remobia.css";
 
 export const metadata: Metadata = {
-  title: "REMOBIA — Réparation et téléphones reconditionnés à Laval",
-  description: "Réparation de téléphones à Laval, devis gratuit et catalogue de smartphones reconditionnés. REMOBIA donne une seconde vie à votre appareil.",
-  robots: { index: false, follow: false },
+  ...publicPageMetadata("/", "REMOBIA — Réparation, reprise et reconditionnés à Laval", SITE_DESCRIPTION),
+  metadataBase: new URL(SITE_URL),
+  verification: { google: GOOGLE_SITE_VERIFICATION },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -19,7 +20,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className="antialiased remobia-site">{children}</body>
+      <body className="antialiased remobia-site">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(siteStructuredData).replace(/</g, "\\u003c"),
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

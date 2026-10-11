@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import PhoneCatalog from "../components/PhoneCatalog";
+import { publicPageMetadata } from "../lib/site-config";
 
-export const metadata: Metadata = {
-  title: "Téléphones à vendre à Laval — REMOBIA",
-  description: "Découvrez les téléphones proposés par REMOBIA à Laval. Consultez les caractéristiques, l’état et le prix de chaque appareil.",
-};
+export const metadata: Metadata = publicPageMetadata(
+  "/telephones",
+  "Téléphones reconditionnés à Laval — REMOBIA",
+  "Consultez le catalogue de téléphones reconditionnés de REMOBIA à Laval : caractéristiques, état et prix des appareils proposés à la vente.",
+);
 
 export default function PhonesPage() {
   return <PhoneCatalog />;
