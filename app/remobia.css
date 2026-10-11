@@ -295,10 +295,14 @@ body.remobia-site .legal-page li { color: #5b535e; }
   body.remobia-site .header-inner,
   body.remobia-site .service-overview-inner { width: calc(100% - 40px); }
   body.remobia-site .header-inner { height: 72px; }
+  body.remobia-site .header-quote { min-height: 44px; font-size: 14px; gap: 8px; padding: 10px 11px; }
+  body.remobia-site .mobile-menu-button,
+  body.remobia-site .catalog-menu { width: 44px; height: 44px; flex-shrink: 0; padding: 10px; margin-right: 0; }
+  body.remobia-site .dialog-close { width: 44px; height: 44px; flex-shrink: 0; }
   body.remobia-site .quote-dialog .quote-wizard { padding: 20px 18px 24px; }
   body.remobia-site .brand-words { font-size: 32px; }
   body.remobia-site .main-nav { gap: 3px; background: var(--paper); box-shadow: 0 12px 24px #251d2d17; }
-  body.remobia-site .main-nav a { padding: 11px 10px; }
+  body.remobia-site .main-nav a { min-height: 44px; padding: 11px 10px; font-size: 16px; }
   body.remobia-site .header-quote { margin-left: auto; }
   body.remobia-site .hero.container { grid-template-columns: 1fr; min-height: 0; }
   body.remobia-site .hero-copy { padding: 46px 20px 35px; }
@@ -307,9 +311,11 @@ body.remobia-site .legal-page li { color: #5b535e; }
   body.remobia-site .hero h1 > span { font-size: clamp(42px, 9vw, 65px); letter-spacing: -.055em; }
   body.remobia-site .hero-description { font-size: 16px; margin-top: 19px; }
   body.remobia-site .hero-actions { gap: 9px; margin-top: 26px; }
-  body.remobia-site .hero-actions .button { flex: 1 1 auto; min-height: 47px; font-size: 11px; padding: 12px; }
+  body.remobia-site .button { min-height: 48px; font-size: 15px; gap: 10px; text-align: center; }
+  body.remobia-site .hero-actions .button { flex: 1 1 155px; min-height: 48px; font-size: 15px; padding: 12px; white-space: normal; }
   body.remobia-site .hero-actions .button:first-child { flex-basis: 100%; }
-  body.remobia-site .hero-note { font-size: 10px; }
+  body.remobia-site .hero-note { align-items: flex-start; font-size: 13px; line-height: 1.6; }
+  body.remobia-site .hero-note svg { margin-top: 3px; }
   body.remobia-site .hero-visual.photo-slot { min-height: 300px; }
   body.remobia-site .photo-slot-index { top: 20px; left: 23px; font-size: 8px; }
   body.remobia-site .photo-slot-center { padding: 22px; }
@@ -319,13 +325,47 @@ body.remobia-site .legal-page li { color: #5b535e; }
   body.remobia-site .service-overview-card { grid-template-columns: 35% minmax(0, 1fr); min-height: 160px; }
   body.remobia-site .service-overview-copy { padding: 17px 18px; }
   body.remobia-site .service-overview-copy h2 { font-size: 23px; }
-  body.remobia-site .service-overview-copy p { font-size: 11px; margin-top: 7px; }
-  body.remobia-site .service-arrow { width: 31px; height: 31px; min-height: 31px; }
+  body.remobia-site .service-overview-copy p { font-size: 15px; line-height: 1.6; margin-top: 9px; margin-bottom: 14px; }
+  body.remobia-site .service-arrow { width: 44px; height: 44px; min-height: 44px; }
   body.remobia-site .reassurance-strip { width: calc(100% - 40px); }
   body.remobia-site .trade-in-section { display: block; padding: 27px 22px; margin-bottom: 45px; }
   body.remobia-site .trade-in-section h2 { font-size: 27px; }
   body.remobia-site .trade-in-copy { margin-top: 14px; }
-  body.remobia-site .trade-in-copy > p { font-size: 13px; }
+  body.remobia-site .trade-in-copy > p { font-size: 16px; line-height: 1.7; }
+  body.remobia-site .trade-in-copy .trade-in-note { font-size: 14px; }
+  body.remobia-site .eyebrow,
+  body.remobia-site .final-cta .eyebrow { font-size: 11px; line-height: 1.5; }
+  body.remobia-site .reassurance-strip strong { font-size: 15px; }
+  body.remobia-site .reassurance-strip small { font-size: 13px; }
+  body.remobia-site .section-heading > p,
+  body.remobia-site .sales-intro p:not(.eyebrow),
+  body.remobia-site .process-grid p,
+  body.remobia-site .process-bottom p,
+  body.remobia-site .approach-copy > p:not(.eyebrow),
+  body.remobia-site .approach-principles p,
+  body.remobia-site .local-copy > p:not(.eyebrow),
+  body.remobia-site .faq-intro > p:not(.eyebrow),
+  body.remobia-site .faq-list details > p,
+  body.remobia-site .final-cta p:not(.eyebrow) { font-size: 16px; line-height: 1.7; }
+  body.remobia-site .repair-card h3 { font-size: 18px; }
+  body.remobia-site .repair-card p { font-size: 15px; line-height: 1.65; }
+  body.remobia-site .repair-card-action,
+  body.remobia-site .process-detail,
+  body.remobia-site .approach-signature,
+  body.remobia-site .brands-row > span { font-size: 14px; }
+  body.remobia-site .brands-row li:last-child { font-size: 13px; }
+  body.remobia-site .local-copy .quiet-link { min-height: 44px; font-size: 15px; }
+  body.remobia-site .local-location span { font-size: 13px; }
+  body.remobia-site .faq-list summary { font-size: 16px; line-height: 1.6; }
+  body.remobia-site .footer-top > p { font-size: 14px; line-height: 1.7; }
+  body.remobia-site .footer-location { min-height: 44px; font-size: 14px; }
+  body.remobia-site .footer-bottom { font-size: 12px; }
+  body.remobia-site .footer-bottom > div { gap: 4px 16px; }
+  body.remobia-site .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
+  body.remobia-site .mobile-quote-bar .button { font-size: 15px; }
+  body.remobia-site .legal-page p,
+  body.remobia-site .legal-page li { font-size: 16px; line-height: 1.7; }
+  body.remobia-site .legal-back { min-height: 44px; font-size: 15px; }
   body.remobia-site .catalog-nav.is-open { background: var(--paper); }
   body.remobia-site .catalog-menu { margin-left: auto; }
   body.remobia-site .catalog-owner-label { margin-left: auto; }
@@ -338,4 +378,12 @@ body.remobia-site .legal-page li { color: #5b535e; }
   body.remobia-site .hero-actions .button { white-space: normal; }
   body.remobia-site .service-overview-copy h2 { font-size: 21px; }
   body.remobia-site .service-photo-slot span { font-size: 9px; }
+  body.remobia-site .header-quote svg { display: none; }
+  body.remobia-site .repair-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 360px) {
+  body.remobia-site .brand-words { font-size: 30px; }
+  body.remobia-site .header-inner { gap: 8px; }
+  body.remobia-site .hero-actions .button { flex-basis: 100%; }
 }

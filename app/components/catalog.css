@@ -3,3 +3,66 @@
 @media(max-width:720px){.catalog-header .header-inner{height:74px}.catalog-nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--paper);padding:15px 25px 22px;border-bottom:1px solid var(--line);box-shadow:0 10px 20px #183d3612}.catalog-nav.is-open{display:flex;flex-direction:column;align-items:stretch;gap:2px}.catalog-nav a{padding:10px;font-size:14px}.catalog-menu{display:inline-flex;margin-right:-10px}.catalog-back{font-size:11px;margin-bottom:29px}.catalog-intro{padding-block:24px 31px}.catalog-intro>.eyebrow{font-size:8px;margin-bottom:18px;max-width:270px;line-height:1.8}.catalog-intro-row{display:block}.catalog-intro h1{font-size:clamp(34px,8.3vw,45px);letter-spacing:-1.3px}.catalog-intro h1 span{letter-spacing:-1px}.catalog-intro-row>p{font-size:13px;margin-top:23px;max-width:none;padding:0;line-height:1.85}.catalog-local-note{font-size:10px;gap:7px;margin-top:22px}.catalog-note-separator{margin-inline:4px}.catalog-list-section{padding-block:29px 36px}.catalog-list-heading{gap:13px;align-items:flex-start;margin-bottom:20px}.catalog-list-heading h2{font-size:23px;line-height:1.25}.catalog-list-heading>p{font-size:10px;text-align:right;flex-shrink:0;padding-top:5px}.catalog-empty{display:block;padding:25px 24px 30px;min-height:0}.catalog-empty-symbol{margin-bottom:18px}.catalog-empty-symbol .phone-placeholder{height:155px;width:170px}.catalog-empty-symbol .phone-placeholder:before{width:145px;height:145px}.catalog-empty-symbol .phone-placeholder:after{width:190px;height:190px}.catalog-empty-symbol .phone-placeholder svg{height:105px;width:70px}.catalog-empty .eyebrow{font-size:8px;margin-bottom:13px}.catalog-empty h3{font-size:28px;margin-bottom:16px;letter-spacing:-.6px}.catalog-empty p:not(.eyebrow){font-size:13px;line-height:1.85}.catalog-empty .quiet-link{font-size:11px;margin-top:17px;gap:8px}.catalog-repair-note{display:grid;grid-template-columns:25px 1fr;gap:13px;padding-top:25px;margin-top:28px}.catalog-repair-note h3{font-size:15px;line-height:1.45}.catalog-repair-note p{font-size:12px;line-height:1.85}.catalog-repair-note>.quiet-link{grid-column:2;margin-left:0;font-size:11px;justify-self:start}.catalog-footer{padding-bottom:30px}.catalog-footer .footer-bottom{gap:14px}.catalog-footer .footer-bottom>div{gap:12px}.catalog-filters{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}.catalog-filters .catalog-search{grid-column:1/-1}.catalog-filters input,.catalog-filters select{font-size:12px;min-height:46px;padding-inline:10px}.catalog-filters .catalog-search input{padding-left:41px}.catalog-search svg{top:14px;left:13px}.phone-grid{grid-template-columns:1fr;gap:19px}.phone-card-photo{height:280px}.phone-card-copy{padding:21px}.phone-card h3{font-size:24px}.phone-card-specs{font-size:13px}.phone-card-bottom strong{font-size:21px}.phone-card-bottom>span{font-size:11px}.catalog-state{min-height:250px;padding:30px 19px}.catalog-state h3{font-size:22px;line-height:1.3}.catalog-state p{font-size:13px}.catalog-detail-dialog,.catalog-interest-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:7px}.catalog-dialog-bar{padding:14px 18px}.catalog-dialog-bar .eyebrow{font-size:8px}.phone-detail-layout{display:block;padding:20px}.phone-detail-photo{height:265px}.phone-detail-copy{padding-top:26px}.phone-detail-copy h2{font-size:30px}.phone-detail-price{font-size:26px;margin-top:12px}.phone-specs{margin-block:21px}.phone-specs>div{font-size:12px}.phone-description p{font-size:13px}.phone-detail-note{font-size:10px}.phone-thumbnails button{width:55px;height:55px}.catalog-access{min-height:440px;padding-block:48px}.catalog-access h1{font-size:36px}.catalog-access>p:not(.eyebrow){font-size:13px;margin-top:22px}.manager-main{padding-block:24px 45px}.manager-intro{display:block;margin-bottom:25px}.manager-intro h1{font-size:37px;letter-spacing:-1.2px}.manager-intro .eyebrow{margin-bottom:15px}.manager-intro p:not(.eyebrow){font-size:13px;margin-top:20px}.manager-intro>.button{width:100%;margin-top:22px;font-size:13px;padding:15px}.manager-status-explainer{flex-direction:column;gap:10px;padding-block:18px;margin-bottom:25px}.manager-status-explainer>span{font-size:11px;gap:10px}.manager-status-explainer .listing-status{min-width:70px;text-align:center}.manager-notice{font-size:12px;padding:13px;align-items:flex-start}.manager-notice>svg{margin-top:2px}.manager-error{display:block;font-size:12px}.manager-error .quiet-link{margin-top:8px}.manager-editor{padding:23px 18px;margin-bottom:32px;scroll-margin-top:92px}.manager-editor-heading{gap:10px;margin-bottom:23px}.manager-editor-heading h2{font-size:24px;line-height:1.25}.manager-editor-heading .eyebrow{font-size:8px}.manager-form-grid{grid-template-columns:1fr;gap:20px}.manager-form-grid label{font-size:12px}.manager-form-grid input,.manager-form-grid select,.manager-form-grid textarea{font-size:16px;padding:12px}.manager-full-field{grid-column:auto}.manager-form-grid small{font-size:10px}.manager-input-unit>span{font-size:14px;top:19px}.manager-photos{padding-top:21px;margin-top:23px}.manager-photos h3{font-size:15px}.manager-photos p{font-size:11px;line-height:1.7}.manager-photo-grid{grid-template-columns:1fr 1fr;gap:11px}.manager-photo{height:150px}.manager-photo-add{min-height:150px;font-size:11px}.manager-editor-actions{display:block;margin-top:23px;padding-top:20px}.manager-editor-actions>p{font-size:10px;margin-bottom:16px}.manager-editor-actions>div{display:flex;gap:8px}.manager-editor-actions .button{padding:12px 10px;font-size:11px;gap:8px}.manager-editor-actions .button-primary{flex:1}.manager-form-error{font-size:12px;padding:12px}.manager-list{margin-top:29px}.manager-list .catalog-list-heading{align-items:center}.manager-list .catalog-list-heading>.quiet-link{font-size:11px}.manager-empty{padding:29px 20px}.manager-empty h3{font-size:23px;line-height:1.3}.manager-empty p{font-size:12px;line-height:1.9}.manager-empty>.quiet-link{font-size:11px}.manager-list-card{grid-template-columns:80px 1fr;gap:16px;padding:16px}.manager-list-photo{width:80px;height:110px}.manager-list-photo .phone-placeholder>svg{width:35px;height:55px}.manager-list-copy>div{gap:6px;flex-wrap:wrap}.manager-list-condition{font-size:9px}.manager-list-copy h3{font-size:19px;line-height:1.3;margin-top:7px}.manager-list-copy>p{font-size:11px;margin-top:5px}.manager-list-copy>strong{font-size:17px;margin-top:5px}.manager-list-actions{grid-column:1/-1;flex-direction:row;gap:24px;border-top:1px solid var(--line);padding-top:10px;margin-top:1px}.manager-list-actions>.quiet-link{font-size:11px}.manager-delete-confirm{display:block;padding-top:16px}.manager-delete-confirm strong{font-size:13px}.manager-delete-confirm p{font-size:11px}.manager-delete-confirm>div:last-child{margin-top:14px;gap:8px;display:flex}.manager-delete-confirm .button{font-size:10px;padding:11px 9px;gap:6px}.manager-delete-button{flex:1}}
 @media(min-width:540px) and (max-width:720px){.phone-grid{grid-template-columns:1fr 1fr}.phone-card-photo{height:220px}.phone-card-copy{padding:18px}.phone-card h3{font-size:20px}.phone-card-bottom{align-items:flex-start;flex-direction:column;gap:5px}.manager-photo-grid{grid-template-columns:repeat(4,1fr)}.manager-photo,.manager-photo-add{min-height:110px;height:110px}.manager-form-grid{grid-template-columns:1fr 1fr}.manager-full-field{grid-column:1/-1}}
 .manager-field-error{display:block;color:#794d38;font-size:12px;font-weight:400;line-height:1.6;margin-top:7px}.manager-form-grid input[aria-invalid=true]{border-color:#b17b61}.manager-conflict{background:#f5f0e6;border:1px solid #ded2bb;border-radius:5px;padding:17px;margin-top:15px;font-size:13px;line-height:1.7;color:#694c30}.manager-conflict-confirm>p{margin-block:13px}.manager-conflict-confirm>div{display:flex;flex-wrap:wrap;gap:10px}.manager-conflict .button{font-size:12px;gap:8px}.catalog-access>.button+.button{margin-left:12px}.manager-form-error:focus{outline:2px solid #b17b61;outline-offset:3px}@media(max-width:720px){.manager-conflict{padding:13px;font-size:12px}.manager-conflict .button{width:100%;font-size:11px}.catalog-access>.button+.button{margin-left:0;margin-top:12px;display:flex;width:fit-content}}
+
+/* Mobile reading and controls; retain the established desktop layout. */
+@media (max-width: 720px) {
+  .catalog-nav { max-height: calc(100dvh - 110px); overflow-y: auto; }
+  .catalog-nav a { min-height: 44px; font-size: 15px; }
+  .catalog-menu { min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
+  .catalog-back { font-size: 14px; min-height: 44px; }
+  .catalog-intro > .eyebrow { font-size: 12px; }
+  .catalog-intro-row > p, .catalog-empty p:not(.eyebrow), .catalog-state p { font-size: 15px; }
+  .catalog-local-note { flex-wrap: wrap; font-size: 14px; gap: 8px; }
+  .catalog-list-heading { flex-wrap: wrap; align-items: center; }
+  .catalog-list-heading > p { font-size: 14px; text-align: left; padding-top: 0; flex-shrink: 1; }
+  .catalog-empty .eyebrow { font-size: 12px; }
+  .catalog-empty .quiet-link, .catalog-repair-note > .quiet-link { font-size: 14px; min-height: 44px; }
+  .catalog-state .button { font-size: 15px; min-height: 48px; }
+  .catalog-state .quiet-link { font-size: 14px; min-height: 44px; }
+  .catalog-repair-note p { font-size: 15px; }
+  .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-filters > label { min-width: 0; }
+  .catalog-filters input, .catalog-filters select { font-size: 16px; min-height: 48px; min-width: 0; }
+  .catalog-search svg { top: 15px; }
+  .phone-placeholder > span, .phone-brand, .phone-condition { font-size: 14px; }
+  .phone-brand, .phone-card-specs { overflow-wrap: anywhere; }
+  .phone-card-specs { font-size: 15px; }
+  .phone-card-bottom { flex-wrap: wrap; row-gap: 10px; }
+  .phone-card-bottom > span { font-size: 14px; }
+  .catalog-dialog-bar { position: sticky; top: 0; z-index: 2; background: var(--white); }
+  .catalog-dialog-bar .eyebrow { font-size: 12px; }
+  .catalog-close { width: 44px; height: 44px; }
+  .phone-specs > div { font-size: 15px; align-items: flex-start; gap: 12px; }
+  .phone-specs dt { flex-shrink: 0; }
+  .phone-specs dd { min-width: 0; overflow-wrap: anywhere; }
+  .phone-description h3, .phone-description p { font-size: 15px; }
+  .phone-interest-button { font-size: 15px; min-height: 48px; gap: 12px; }
+  .phone-detail-note { font-size: 14px; }
+  .catalog-access > p:not(.eyebrow) { font-size: 15px; overflow-wrap: anywhere; }
+  .manager-intro p:not(.eyebrow), .manager-empty p { font-size: 15px; }
+  .manager-intro > .button { font-size: 15px; min-height: 48px; }
+  .manager-status-explainer > span, .listing-status { font-size: 14px; }
+  .manager-notice, .manager-error, .manager-form-error, .manager-field-error, .manager-conflict { font-size: 14px; }
+  .manager-notice > p { min-width: 0; }
+  .manager-error > .quiet-link { font-size: 14px; min-height: 44px; }
+  .manager-notice button { width: 44px; height: 44px; min-width: 44px; align-items: center; justify-content: center; }
+  .manager-form-grid label { font-size: 15px; }
+  .manager-form-grid input, .manager-form-grid select, .manager-form-grid textarea { font-size: 16px; }
+  .manager-form-grid small, .manager-photos p, .manager-editor-actions > p { font-size: 14px; }
+  .manager-photo > button { width: 44px; height: 44px; }
+  .manager-photo > span { font-size: 14px; }
+  .manager-photo-add { font-size: 14px; }
+  .manager-editor-actions .button, .manager-conflict .button, .manager-delete-confirm .button { font-size: 14px; min-height: 44px; }
+  .manager-list-card { grid-template-columns: 80px minmax(0, 1fr); }
+  .manager-list-copy { min-width: 0; }
+  .manager-list-copy > p { overflow-wrap: anywhere; font-size: 14px; }
+  .manager-list-condition, .manager-delete-confirm strong, .manager-delete-confirm p { font-size: 14px; }
+  .manager-list-actions > .quiet-link, .manager-list .catalog-list-heading > .quiet-link,
+  .manager-main > div > .quiet-link, .manager-empty .quiet-link { font-size: 14px; min-height: 44px; }
+}
+
+@media (max-width: 430px) {
+  .catalog-filters { grid-template-columns: minmax(0, 1fr); }
+  .manager-editor-actions > div, .manager-delete-confirm > div:last-child { flex-direction: column; }
+  .manager-editor-actions .button, .manager-delete-confirm .button { width: 100%; }
+}

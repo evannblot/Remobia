@@ -50,12 +50,22 @@
 .pi-spinner { animation: pi-spin .8s linear infinite; }
 @keyframes pi-spin { to { transform: rotate(360deg); } }
 @media (max-width: 500px) {
+  .pi-field input, .pi-field textarea { font-size: 16px; }
+  .pi-field label, .pi-field label span, .pi-consent, .pi-help,
+  .pi-error, .pi-submit-error, .pi-submit p, .pi-draft-notice,
+  .pi-reference, .pi-recap, .pi-not-sent, .pi-copy-status { font-size: 14px; }
+  .pi-button { min-height: 48px; font-size: 14px !important; }
+  .pi-text-button { min-height: 44px; font-size: 14px !important; }
+  .pi-consent { min-height: 44px; }
   .pi-submit { flex-direction: column; align-items: stretch; gap: 9px; }
   .pi-submit p { text-align: center; }
   .pi-phone-summary { padding: 14px; gap: 10px; }
-  .pi-phone-summary strong { font-size: 14px; }
+  .pi-phone-summary strong { font-size: 16px; }
+  .pi-phone-summary span { font-size: 14px; }
   .pi-phone-summary strong.pi-price { font-size: 16px; }
   .pi-actions .pi-button { width: 100%; }
-  .pi-close { right: -6px; top: -6px; }
+  .pi-actions .pi-text-button { width: 100%; }
+  .pi-close { right: -6px; top: -6px; width: 44px; height: 44px; }
+  .pi-reference { overflow-wrap: anywhere; }
 }
 @media (prefers-reduced-motion: reduce) { .pi-spinner { animation-duration: 1.8s; } }

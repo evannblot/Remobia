@@ -9,3 +9,10 @@
 .owner-code-error { background: #f8e4df; color: #793526; }
 .owner-code-panel .button:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 600px) { .owner-code-panel { max-width: 100%; } .owner-code-panel .button { width: 100%; justify-content: center; } }
+
+@media (max-width: 720px) {
+  .owner-code-panel label { font-size: 16px; }
+  .owner-code-panel .owner-code-hint { font-size: 14px; }
+  .owner-code-panel .owner-code-notice, .owner-code-panel .owner-code-error { font-size: 15px; }
+  .owner-code-panel .button, .catalog-access > .button { font-size: 15px; min-height: 48px; }
+}

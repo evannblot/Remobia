@@ -144,3 +144,38 @@
   .ti-actions .button { gap: 6px; font-size: 11px; padding: 12px 12px; }
   .ti-defect-options { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 760px) {
+  .ti-intro > p:not(.eyebrow) { font-size: 16px; }
+  .ti-benefits, .ti-help, .ti-field-error, .ti-photo-format, .ti-optional, .ti-required,
+  .ti-privacy-note, .ti-submit-note, .ti-availability, .ti-actions-note { font-size: 14px; }
+  .ti-step-label { font-size: 12px; }
+  .ti-step-intro { font-size: 15px; }
+  .ti-field > label, .ti-choice-field legend { font-size: 15px; }
+  .ti-field input, .ti-field textarea { font-size: 16px; }
+  .ti-choice { font-size: 14px; min-height: 48px; }
+  .ti-steps button { font-size: 14px; min-height: 44px; }
+  .ti-step-number { font-size: 13px; }
+  .ti-photo-heading strong { font-size: 15px; }
+  .ti-photo-heading > span, .ti-photo-preview > span { font-size: 14px; }
+  .ti-upload { font-size: 14px; min-height: 44px; }
+  .ti-photo-remove { min-width: 44px; height: 44px; }
+  .ti-contact-recap > strong { overflow-wrap: anywhere; }
+  .ti-contact-recap > span, .ti-text-button { font-size: 14px; }
+  .ti-text-button { min-height: 44px; }
+  .ti-consent label, .ti-error-summary, .ti-unavailable { font-size: 15px; }
+  .ti-actions .button { font-size: 15px; min-height: 48px; }
+  .ti-success > p:not(.eyebrow) { font-size: 16px; }
+  .ti-success-device > strong, .ti-success-device > span { overflow-wrap: anywhere; }
+  .ti-success-device > span, .ti-success > .button { font-size: 15px; }
+}
+
+@media (max-width: 430px) {
+  .ti-photo-grid { grid-template-columns: minmax(0, 1fr); }
+  .ti-photo-preview { aspect-ratio: 4 / 3; min-height: 160px; max-height: 220px; }
+  .ti-photo-controls { flex-wrap: nowrap; }
+  .ti-answer-options .ti-choice { flex: 1 1 calc(50% - 4px); }
+  .ti-actions { flex-wrap: wrap; }
+  .ti-actions .button-primary { width: 100%; }
+  .ti-success > .button { width: 100%; }
+}

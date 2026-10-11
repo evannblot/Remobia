@@ -1,14 +1,15 @@
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 export default function MentionsLegales() {
   return <main className="legal-page">
-    <a href="/" className="legal-back"><ArrowLeft size={17} aria-hidden="true" />Retour au site</a>
-    <p className="eyebrow">REMOBIA · VERSION DE PRÉSENTATION</p>
-    <h1>À propos de cette version.</h1>
-    <div className="legal-notice"><p>Ce site présente le projet REMOBIA : réparation, vente de téléphones et demandes d’estimation de reprise à Laval. L’envoi des demandes de devis par email n’est pas encore ouvert.</p></div>
+    <Link href="/" className="legal-back"><ArrowLeft size={17} aria-hidden="true" />Retour au site</Link>
+    <p className="eyebrow">REMOBIA · INFORMATIONS DU SITE</p>
+    <h1>À propos de REMOBIA.</h1>
+    <div className="legal-notice"><p>Ce site présente REMOBIA : réparation, vente de téléphones et demandes d’estimation de reprise à Laval. Les formulaires de devis et d’informations sur un téléphone permettent d’envoyer une demande par email à REMOBIA.</p></div>
     <h2>Informations de l’activité</h2>
-    <p>L’identité de l’exploitant, son adresse professionnelle, ses coordonnées et ses informations d’immatriculation seront ajoutées avant l’ouverture du site au public.</p>
+    <p>REMOBIA est joignable à <a href="mailto:remobia.laval@gmail.com">remobia.laval@gmail.com</a>. L’identité administrative de l’exploitant, son adresse professionnelle et ses informations d’immatriculation restent à compléter.</p>
     <h2>Services et devis</h2>
-    <p>Le formulaire de présentation permet de préparer un récapitulatif personnel. Il ne fournit pas de prix instantané et ne déclenche aucune intervention. Les possibilités de réparation, les pièces, le prix, le délai et les conditions de garantie seront précisés dans une proposition remise au client.</p>
+    <p>Le formulaire de devis transmet les informations sur votre appareil, les problèmes constatés et vos coordonnées à REMOBIA par email, via Resend. Il ne fournit pas de prix instantané et ne déclenche aucune intervention. Les possibilités de réparation, les pièces, le prix, le délai et les conditions de garantie seront précisés dans une proposition remise au client.</p>
     <h2>Téléphones à vendre</h2>
     <p>Les annonces indiquent les caractéristiques, l’état et le prix renseignés par le propriétaire pour chaque appareil. Une demande d’informations ne vaut ni réservation ni achat. La disponibilité, les conditions de remise et les conditions de vente seront confirmées avant toute transaction. Aucun paiement en ligne n’est proposé dans cette version.</p>
     <h2>Reprise</h2>
@@ -16,6 +17,6 @@ export default function MentionsLegales() {
     <h2>Photographies</h2>
     <p>Les emplacements de la page d’accueil seront remplacés par des photos fournies pour REMOBIA. Les annonces de vente peuvent afficher les photos des appareils ajoutées par le propriétaire.</p>
     <h2>Hébergement</h2>
-    <p>Cette version est hébergée avec Sites et reste privée pour la présentation du projet. Les informations complètes d’hébergement et les mentions de l’exploitant seront finalisées avant l’ouverture au public.</p>
+    <p>Le site est hébergé sur Vercel. Les annonces et les demandes de reprise utilisent une base Neon ; les photos sont conservées dans Vercel Blob. La connexion à l’espace propriétaire est gérée par Neon Auth avec un code reçu par email. Resend assure l’envoi des demandes de contact et des notifications de reprise. Les informations administratives complètes de l’hébergeur et de l’exploitant restent à compléter.</p>
   </main>;
 }
