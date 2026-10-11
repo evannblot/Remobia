@@ -11,6 +11,7 @@ import "./catalog.css";
 
 type Editing = {
   id?: string;
+  requestId?: string;
   version?: number;
   brand: string;
   model: string;
@@ -104,7 +105,7 @@ export default function PhoneManager({ vercelOwner = false }: { vercelOwner?: bo
   }
   function start(phone?: PhoneListing) {
     cancelPhotoPreparation();
-    setEditing(phone ? fromPhone(phone) : { ...blank, images: [] }); replaceNewPhotos([]); setFormError(""); setFieldErrors({}); setPhotoError(""); setConflict(false); setConfirmReload(false); setNotice(""); setDeleting(null);
+    setEditing(phone ? fromPhone(phone) : { ...blank, requestId: crypto.randomUUID(), images: [] }); replaceNewPhotos([]); setFormError(""); setFieldErrors({}); setPhotoError(""); setConflict(false); setConfirmReload(false); setNotice(""); setDeleting(null);
   }
   function closeEditor() { cancelPhotoPreparation(); setEditing(null); replaceNewPhotos([]); setFormError(""); setFieldErrors({}); setPhotoError(""); setConflict(false); setConfirmReload(false); }
   function update<K extends keyof Editing>(field: K, value: Editing[K]) {
@@ -146,8 +147,9 @@ export default function PhoneManager({ vercelOwner = false }: { vercelOwner?: bo
     window.requestAnimationFrame(() => editorRef.current?.querySelector<HTMLInputElement>(`[name="${field}"]`)?.focus());
   }
   async function reloadEditing() {
-    if (!editing?.id || reloading || saving) return;
-    const editingId = editing.id;
+    // A creation conflict can refer to a saved announcement whose response was lost.
+    const editingId = editing?.id ?? (conflict ? editing?.requestId : undefined);
+    if (!editingId || reloading || saving) return;
     setReloading(true); setFormError("");
     try {
       const { response, data } = await fetchClientJson<{ phones?: PhoneListing[]; error?: string }>("/api/admin/phones", { cache: "no-store" }, {
@@ -176,7 +178,7 @@ export default function PhoneManager({ vercelOwner = false }: { vercelOwner?: bo
     if (Object.keys(nextErrors).length) { showFieldErrors(nextErrors); return; }
     setFieldErrors({});
     const data = new FormData();
-    data.append("listing", JSON.stringify({ brand: editing.brand.trim(), model: editing.model.trim(), storage: editing.storage.trim(), color: editing.color.trim(), condition: editing.condition, priceCents, battery, description: editing.description.trim(), status: editing.status, images: editing.images, ...(editing.id ? { expectedVersion: editing.version } : {}) }));
+    data.append("listing", JSON.stringify({ brand: editing.brand.trim(), model: editing.model.trim(), storage: editing.storage.trim(), color: editing.color.trim(), condition: editing.condition, priceCents, battery, description: editing.description.trim(), status: editing.status, images: editing.images, ...(editing.id ? { expectedVersion: editing.version } : { requestId: editing.requestId }) }));
     files.forEach((file) => data.append("photos", file));
     // An older list response must not overwrite the just-saved announcement.
     loadController.current?.abort(); setLoading(false);

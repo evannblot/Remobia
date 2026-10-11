@@ -67,8 +67,10 @@ function request(method = "GET", listing = valid, photos = [], headers = OWNER) 
   const url = "https://atelier.example.test/api/admin/phones";
   if (method === "GET" || method === "DELETE") return new Request(url, { method, headers: { origin: "https://atelier.example.test", ...headers } });
   const form = new FormData();
-  const content = method === "PUT" && listing?.version !== undefined && !Object.hasOwn(listing, "expectedVersion")
-    ? { ...listing, expectedVersion: listing.version } : listing;
+  const content = method === "POST" && listing && typeof listing === "object" && !Object.hasOwn(listing, "requestId")
+    ? { ...listing, requestId: crypto.randomUUID() }
+    : method === "PUT" && listing?.version !== undefined && !Object.hasOwn(listing, "expectedVersion")
+      ? { ...listing, expectedVersion: listing.version } : listing;
   form.set("listing", JSON.stringify(content));
   for (const photo of photos) form.append("photos", photo);
   return new Request(url, { method, headers: { origin: "https://atelier.example.test", ...headers }, body: form });
@@ -286,6 +288,165 @@ function pauseCompetingUploads(bucket, arrivalsNeeded = 2) {
     }
   };
 }
+
+test("a create retry after a lost HTTP response returns the original announcement without uploading again", async () => {
+  const f = fixtures();
+  const listing = { ...valid, status: "published", requestId: crypto.randomUUID() };
+  // The server commits, but the caller loses the response and only knows requestId.
+  const lostResponse = await f.handlers.POST(request("POST", listing, [photo()]));
+  assert.equal(lostResponse.status, 201);
+  const original = (await lostResponse.json()).phone;
+  const retry = await f.handlers.POST(request("POST", listing, [new File([png], "renamed.png", { type: "image/png" })]));
+  assert.equal(retry.status, 201);
+  assert.deepEqual((await retry.json()).phone, original);
+  assert.equal(original.id, listing.requestId);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_listings").get().n, 1);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_images").get().n, 1);
+  assert.equal(f.objects.size, 1);
+  assert.equal(f.bucket.puts, 1);
+  assert.equal((await (await f.handlers.PUBLIC_GET()).json()).phones.length, 1);
+  f.sqlite.close();
+});
+
+test("an ambiguous committed database response keeps saved photos and can be retried with the same ID", async () => {
+  const previousVercel = process.env.VERCEL;
+  process.env.VERCEL = "1";
+  const f = fixtures();
+  f.env.OWNER_AUTH_CONFIGURED = true;
+  f.env.OWNER_IDENTITY = { userId: "synthetic-owner", email: "owner@example.test", verified: true };
+  let loseCommitResponse = true;
+  let readsUnavailable = false;
+  const db = { ...f.db, async batch(statements) {
+    if (statements.some(statement => statement.sql.startsWith("INSERT INTO phone_listings")) && loseCommitResponse) {
+      loseCommitResponse = false;
+      await f.db.batch(statements);
+      readsUnavailable = true;
+      throw new Error("Synthetic lost database response");
+    }
+    if (readsUnavailable) throw new Error("Synthetic reconciliation outage");
+    return f.db.batch(statements);
+  } };
+  const handlers = createCatalogHandlers({ ...f.env, DB: db });
+  const listing = { ...valid, requestId: crypto.randomUUID() };
+  try {
+    const uncertain = await handlers.POST(request("POST", listing, [photo()]));
+    assert.equal(uncertain.status, 503);
+    assert.ok(!(await uncertain.text()).includes("Synthetic"));
+    assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_listings").get().n, 1);
+    assert.equal(f.objects.size, 1);
+    assert.equal(f.bucket.deletes.length, 0);
+    readsUnavailable = false;
+    const retry = await handlers.POST(request("POST", listing, [photo()]));
+    assert.equal(retry.status, 201);
+    const saved = (await retry.json()).phone;
+    assert.equal(saved.id, listing.requestId);
+    assert.equal(saved.images.length, 1);
+    assert.equal(saved.version, 1);
+    assert.equal(f.bucket.puts, 1);
+    const imageId = saved.images[0].split("/").pop();
+    assert.equal((await handlers.IMAGE_GET(new Request(`https://atelier.example.test${saved.images[0]}`), imageId)).status, 200);
+  } finally {
+    f.sqlite.close();
+    if (previousVercel === undefined) delete process.env.VERCEL;
+    else process.env.VERCEL = previousVercel;
+  }
+});
+
+test("a committed transaction with a lost response is reconciled before any saved photo is cleaned", async () => {
+  const f = fixtures();
+  let loseCommitResponse = true;
+  const db = { ...f.db, async batch(statements) {
+    const result = await f.db.batch(statements);
+    if (loseCommitResponse && statements.some(statement => statement.sql.startsWith("INSERT INTO phone_listings"))) {
+      loseCommitResponse = false;
+      throw new Error("Synthetic response lost after commit");
+    }
+    return result;
+  } };
+  const handlers = createCatalogHandlers({ ...f.env, DB: db });
+  const listing = { ...valid, requestId: crypto.randomUUID() };
+  const response = await handlers.POST(request("POST", listing, [photo()]));
+  assert.equal(response.status, 201);
+  const saved = (await response.json()).phone;
+  assert.equal(saved.id, listing.requestId);
+  assert.equal(saved.images.length, 1);
+  assert.equal(f.objects.size, 1);
+  assert.equal(f.bucket.deletes.length, 0);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_listings").get().n, 1);
+  f.sqlite.close();
+});
+
+test("simultaneous identical creates have one announcement and one photo set", async () => {
+  const f = fixtures();
+  const listing = { ...valid, requestId: crypto.randomUUID() };
+  pauseCompetingUploads(f.bucket);
+  const responses = await Promise.all([
+    f.handlers.POST(request("POST", listing, [photo()])),
+    f.handlers.POST(request("POST", listing, [photo()])),
+  ]);
+  assert.deepEqual(responses.map(response => response.status), [201, 201]);
+  const first = (await responses[0].json()).phone;
+  assert.deepEqual((await responses[1].json()).phone, first);
+  assert.equal(first.id, listing.requestId);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_listings").get().n, 1);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_images").get().n, 1);
+  assert.equal(f.objects.size, 1);
+  assert.equal(f.bucket.puts, 2);
+  assert.equal(f.bucket.deletes.length, 1);
+  f.sqlite.close();
+});
+
+test("different simultaneous creates cannot share an ID or append photos to the accepted creation", async () => {
+  const f = fixtures();
+  const requestId = crypto.randomUUID();
+  pauseCompetingUploads(f.bucket);
+  const responses = await Promise.all([
+    f.handlers.POST(request("POST", { ...valid, requestId, model: "Accepted A" }, [photo()])),
+    f.handlers.POST(request("POST", { ...valid, requestId, model: "Accepted B" }, [photo()])),
+  ]);
+  assert.deepEqual(responses.map(response => response.status).sort(), [201, 409]);
+  const accepted = (await responses.find(response => response.status === 201).json()).phone;
+  const current = (await (await f.handlers.ADMIN_GET(request())).json()).phones;
+  assert.deepEqual(current, [accepted]);
+  assert.equal(f.objects.size, 1);
+  assert.equal(f.bucket.deletes.length, 1);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_images").get().n, 1);
+  f.sqlite.close();
+});
+
+test("a creation ID cannot overwrite a different payload, changed photos, or an edited announcement", async () => {
+  const f = fixtures();
+  const listing = { ...valid, requestId: crypto.randomUUID() };
+  const current = await create(f, listing, [photo()]);
+  const changedPhoto = new Uint8Array(png);
+  changedPhoto[changedPhoto.length - 1] ^= 1;
+  for (const [content, photos] of [
+    [{ ...listing, priceCents: 99900 }, [photo()]],
+    [listing, [photo(changedPhoto)]],
+  ]) {
+    const response = await f.handlers.POST(request("POST", content, photos));
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /Rechargez/);
+  }
+  assert.equal(f.bucket.puts, 1);
+  const sold = await f.handlers.PUT(request("PUT", { ...current, status: "sold" }), current.id);
+  assert.equal(sold.status, 200);
+  assert.equal((await f.handlers.POST(request("POST", listing, [photo()]))).status, 409);
+  const stored = f.sqlite.prepare("SELECT status, price_cents, version FROM phone_listings WHERE id = ?").get(current.id);
+  assert.deepEqual({ ...stored }, { status: "sold", price_cents: valid.priceCents, version: 2 });
+  assert.equal(f.objects.size, 1);
+  f.sqlite.close();
+});
+
+test("creation IDs are required and validated before uploading or creating any announcement", async () => {
+  const f = fixtures();
+  for (const requestId of [undefined, null, "", "not-a-uuid", "'; DROP TABLE phone_listings; --"]) {
+    assert.equal((await f.handlers.POST(request("POST", { ...valid, requestId }, [photo()]))).status, 400);
+  }
+  assert.equal(f.bucket.puts, 0);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM phone_listings").get().n, 0);
+  f.sqlite.close();
+});
 
 test("simultaneous additions cannot exceed the photo limit or increment the same version twice", async () => {
   const f = fixtures();

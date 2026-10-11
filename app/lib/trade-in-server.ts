@@ -263,13 +263,18 @@ export function createTradeInHandlers(bindings: CatalogBindings) {
       try {
         authorizeAdmin(request, bindings);
         const { db } = requireBindings(bindings);
-        const rows = await db.prepare("SELECT id, request_id, reference, fingerprint, details, created_at, state FROM trade_in_requests WHERE state = 'active' ORDER BY created_at DESC, id DESC").all<RequestRow>();
+        const rows = await db.prepare("SELECT id, request_id, reference, fingerprint, details, created_at, state FROM trade_in_requests WHERE state IN ('active', 'deleting') ORDER BY created_at DESC, id DESC").all<RequestRow>();
         const images = await db.prepare("SELECT i.id, i.request_id, i.object_key, i.mime_type, i.side FROM trade_in_images i INNER JOIN trade_in_requests r ON r.id = i.request_id WHERE r.state = 'active'").all<ImageRow>();
         if (!rows.success || !images.success) throw new Error("Trade-in list unavailable");
-        return json({ requests: rows.results.map((row) => asRequest(row, images.results.filter((image) => image.request_id === row.id))) }, 200, true);
+        return json({
+          requests: rows.results.filter((row) => row.state === "active").map((row) => asRequest(row, images.results.filter((image) => image.request_id === row.id))),
+          // Keep the interrupted purge discoverable without bringing personal details or photos back.
+          pendingDeletions: rows.results.filter((row) => row.state === "deleting").map((row) => ({ id: row.id, reference: row.reference })),
+        }, 200, true);
       } catch (error) { return failure(error, true); }
     },
     async DELETE(request: Request, id: string): Promise<Response> {
+      let deletionPending = false;
       try {
         authorizeAdmin(request, bindings);
         assertOrigin(request);
@@ -278,12 +283,14 @@ export function createTradeInHandlers(bindings: CatalogBindings) {
         const current = await db.prepare("SELECT state FROM trade_in_requests WHERE id = ?").bind(id).first<{ state: RequestRow["state"] }>();
         if (!current) throw new TradeInError("Demande introuvable.", 404);
         if (current.state === "deleted") return json({ success: true }, 200, true);
+        deletionPending = current.state === "deleting";
         // Hide and erase personal details first. Retain photo keys until R2 confirms deletion so a failed deletion can be retried.
         const results = await db.batch([
           db.prepare("UPDATE trade_in_requests SET state = 'deleting', details = '{}', fingerprint = '' WHERE id = ? AND state != 'deleted'").bind(id),
           db.prepare("SELECT object_key FROM trade_in_images WHERE request_id = ?").bind(id),
         ]);
         assertBatch(results);
+        deletionPending = true;
         const keys = (results[1].results as { object_key: string }[]).map((image) => image.object_key);
         if (keys.length) await bucket.delete(keys);
         assertBatch(await db.batch([
@@ -291,7 +298,10 @@ export function createTradeInHandlers(bindings: CatalogBindings) {
           db.prepare("UPDATE trade_in_requests SET state = 'deleted' WHERE id = ? AND state = 'deleting'").bind(id),
         ]));
         return json({ success: true }, 200, true);
-      } catch (error) { return failure(error, true); }
+      } catch (error) {
+        if (deletionPending) return json({ deletionPending: true, error: "Les informations du client ont été effacées. La suppression des photos n’a pas pu être confirmée : relancez « Terminer la suppression »." }, 503, true);
+        return failure(error, true);
+      }
     },
     async IMAGE_GET(request: Request, id: string, side: string): Promise<Response> {
       try {

@@ -24,6 +24,7 @@ const PRIVATE_HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie, o
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
 const PHONE_COLUMNS = "id, brand, model, storage, color, condition, price_cents, battery, description, status, created_at, updated_at, version";
 const CONFLICT_MESSAGE = "Cette annonce a été modifiée ou supprimée depuis son ouverture. Vos changements n’ont pas été enregistrés. Actualisez la fiche avant de réessayer.";
+const CREATION_CONFLICT_MESSAGE = "Cette annonce a déjà été enregistrée ou modifiée. Vos saisies sont conservées. Rechargez la fiche enregistrée avant de réessayer.";
 
 type ListingInput = Omit<PhoneListing, "id" | "createdAt" | "updatedAt" | "version">;
 type PhoneRow = Omit<PhoneListing, "priceCents" | "createdAt" | "updatedAt" | "images"> & {
@@ -159,7 +160,7 @@ async function boundedFormData(request: Request): Promise<FormData> {
   catch { throw new CatalogError("L’annonce n’a pas pu être lue."); }
 }
 
-async function readInput(request: Request, updating: boolean): Promise<{ listing: ListingInput; expectedVersion: number | null; photos: { bytes: Uint8Array; mime: string }[] }> {
+async function readInput(request: Request, updating: boolean): Promise<{ listing: ListingInput; requestId: string | null; expectedVersion: number | null; photos: { bytes: Uint8Array; mime: string }[] }> {
   const form = await boundedFormData(request);
   for (const key of form.keys()) if (key !== "listing" && key !== "photos") throw new CatalogError("Un champ de l’annonce est incorrect.");
   const listingValues = form.getAll("listing");
@@ -172,6 +173,10 @@ async function readInput(request: Request, updating: boolean): Promise<{ listing
     throw new CatalogError("La version de cette annonce est incorrecte. Actualisez la fiche avant de réessayer.");
   }
   const listing = validateListing(raw);
+  const requestId = updating ? null : (raw as Record<string, unknown>).requestId;
+  if (!updating && (typeof requestId !== "string" || !ID_PATTERN.test(requestId))) {
+    throw new CatalogError("Rechargez le formulaire de création avant de réessayer.");
+  }
   const files = form.getAll("photos");
   if (files.length + listing.images.length > 4) throw new CatalogError("Ajoutez au maximum quatre photos.");
   const photos: { bytes: Uint8Array; mime: string }[] = [];
@@ -182,7 +187,7 @@ async function readInput(request: Request, updating: boolean): Promise<{ listing
     if (!mime || mime !== file.type) throw new CatalogError("Utilisez une photo JPEG, PNG ou WebP valide.");
     photos.push({ bytes, mime });
   }
-  return { listing, expectedVersion: expectedVersion as number | null, photos };
+  return { listing, requestId: typeof requestId === "string" ? requestId.toLowerCase() : null, expectedVersion: expectedVersion as number | null, photos };
 }
 
 function asPhone(row: PhoneRow, images: ImageRow[]): PhoneListing {
@@ -205,6 +210,31 @@ async function getPhone(db: D1Database, id: string): Promise<{ phone: PhoneListi
   if (!row) return null;
   const images = await getImages(db, id);
   return { phone: asPhone(row, images), images };
+}
+
+async function creationFingerprint(listing: ListingInput, photos: { bytes: Uint8Array; mime: string }[]): Promise<string> {
+  const digest = async (bytes: Uint8Array) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer)), byte => byte.toString(16).padStart(2, "0")).join("");
+  const images = [];
+  for (const photo of photos) images.push({ mime: photo.mime, hash: await digest(photo.bytes) });
+  return digest(new TextEncoder().encode(JSON.stringify({ listing, images })));
+}
+
+async function getCreation(db: D1Database, id: string): Promise<{ phone: PhoneListing; images: ImageRow[]; writeToken: string } | null> {
+  const results = await db.batch([
+    db.prepare(`SELECT ${PHONE_COLUMNS}, write_token FROM phone_listings WHERE id = ?`).bind(id),
+    db.prepare("SELECT id, phone_id, object_key, mime_type, position FROM phone_images WHERE phone_id = ? ORDER BY position, id").bind(id),
+  ]);
+  assertBatch(results);
+  const row = results[0].results[0] as PhoneRow & { write_token: string } | undefined;
+  if (!row) return null;
+  const images = results[1].results as ImageRow[];
+  return { phone: asPhone(row, images), images, writeToken: row.write_token };
+}
+
+function replayCreation(saved: Awaited<ReturnType<typeof getCreation>>, fingerprint: string): PhoneListing {
+  // An edit replaces the creation marker: never replay an old create over an edited phone.
+  if (!saved || !saved.writeToken.startsWith(`create:${fingerprint}:`)) throw new CatalogError(CREATION_CONFLICT_MESSAGE, 409);
+  return saved.phone;
 }
 
 export async function getPublishedPhone(db: D1Database, id: string): Promise<PhoneListing | null> {
@@ -246,10 +276,6 @@ async function uploadImages(bucket: R2Bucket, phoneId: string, photos: { bytes: 
   }
 }
 
-function imageInsert(db: D1Database, phoneId: string, image: UploadedImage, position: number): D1PreparedStatement {
-  return db.prepare("INSERT INTO phone_images (id, phone_id, object_key, mime_type, position) VALUES (?, ?, ?, ?, ?)").bind(image.id, phoneId, image.key, image.mime, position);
-}
-
 /** Every photo mutation shares the successful update's marker inside the same D1 transaction. */
 function guardedImageInsert(db: D1Database, phoneId: string, image: UploadedImage, position: number, writeToken: string): D1PreparedStatement {
   return db.prepare("INSERT INTO phone_images (id, phone_id, object_key, mime_type, position) SELECT ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM phone_listings WHERE id = ? AND write_token = ?)")
@@ -275,21 +301,50 @@ export function createCatalogHandlers(bindings: CatalogBindings) {
     async POST(request: Request): Promise<Response> {
       let uploaded: UploadedImage[] = [];
       let attemptedCommit = false;
+      let submission: { db: D1Database; id: string; fingerprint: string } | undefined;
       try {
         authorizeAdmin(request, bindings);
         assertCatalogOrigin(request);
         const { db, bucket } = requireBindings(bindings);
-        const { listing, photos } = await readInput(request, false);
+        const { listing, photos, requestId } = await readInput(request, false);
         if (listing.images.length) throw new CatalogError("Une nouvelle annonce ne peut pas reprendre des photos existantes.");
-        const id = crypto.randomUUID();
+        const id = requestId!;
+        const fingerprint = await creationFingerprint(listing, photos);
+        submission = { db, id, fingerprint };
+        const existing = await getCreation(db, id);
+        if (existing) return json({ phone: replayCreation(existing, fingerprint) }, 201, true);
         const now = new Date().toISOString();
         uploaded = await uploadImages(bucket, id, photos);
-        const insert = db.prepare("INSERT INTO phone_listings (id, brand, model, storage, color, condition, price_cents, battery, description, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-          .bind(id, listing.brand, listing.model, listing.storage, listing.color, listing.condition, listing.priceCents, listing.battery, listing.description, listing.status, now, now);
+        // The primary key deduplicates creation. A per-attempt marker ensures a losing
+        // concurrent request cannot append its uploads to the winning transaction.
+        const writeToken = `create:${fingerprint}:${crypto.randomUUID()}`;
+        const insert = db.prepare("INSERT INTO phone_listings (id, brand, model, storage, color, condition, price_cents, battery, description, status, created_at, updated_at, write_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING")
+          .bind(id, listing.brand, listing.model, listing.storage, listing.color, listing.condition, listing.priceCents, listing.battery, listing.description, listing.status, now, now, writeToken);
         attemptedCommit = true;
-        assertBatch(await db.batch([insert, ...uploaded.map((image, index) => imageInsert(db, id, image, index))]));
+        const results = await db.batch([insert, ...uploaded.map((image, index) => guardedImageInsert(db, id, image, index, writeToken))]);
+        assertBatch(results);
+        if (results[0]?.meta.changes === 0) {
+          await cleanupImages(bucket, uploaded.map(image => image.key));
+          uploaded = [];
+          return json({ phone: replayCreation(await getCreation(db, id), fingerprint) }, 201, true);
+        }
+        if (results[0]?.meta.changes !== 1) throw new Error("Catalogue creation was not confirmed");
         return json({ phone: { ...listing, id, images: uploaded.map((image) => `/api/phone-images/${image.id}`), createdAt: now, updatedAt: now, version: 1 } }, 201, true);
       } catch (error) {
+        if (attemptedCommit && submission) {
+          try {
+            // A database timeout may follow a commit. Reconcile before either retrying
+            // or deleting uploads, including when another request won the same ID.
+            const saved = await getCreation(submission.db, submission.id);
+            if (saved) {
+              const savedKeys = new Set(saved.images.map(image => image.object_key));
+              if (bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.filter(image => !savedKeys.has(image.key)).map(image => image.key));
+              return json({ phone: replayCreation(saved, submission.fingerprint) }, 201, true);
+            }
+          } catch (reconciliationError) {
+            if (reconciliationError instanceof CatalogError) return failure(reconciliationError, true);
+          }
+        }
         // A lost database response can follow a commit; keep potentially saved photos.
         if ((!attemptedCommit || typeof process === "undefined" || process.env.VERCEL === undefined) && bindings.BUCKET) await cleanupImages(bindings.BUCKET, uploaded.map((image) => image.key));
         return failure(error, true);

@@ -71,7 +71,7 @@ function fixtures() {
     puts: 0, deletes: [],
     async put(key, bytes, options) { this.puts++; await this.beforePut?.(key, this.puts); objects.set(key, { bytes: bytes.slice(), options }); },
     async delete(keys) {
-      await this.beforeDelete?.();
+      await this.beforeDelete?.(keys);
       for (const key of typeof keys === "string" ? [keys] : keys) { this.deletes.push(key); objects.delete(key); }
     },
     async get(key) { const object = objects.get(key); return object ? { body: object.bytes, size: object.bytes.length } : null; },
@@ -285,18 +285,64 @@ test("deletion requires owner and matching origin, erases details and photos, an
   f.sqlite.close();
 });
 
-test("a failed photo deletion hides all data and retains cleanup metadata for a successful retry", async () => {
+test("an interrupted photo purge is discoverable after refresh without personal data and safely resumes", async () => {
   const f = fixtures();
-  const saved = await create(f);
-  f.bucket.beforeDelete = async () => { throw new Error("Synthetic bucket deletion failure"); };
-  assert.equal((await f.handlers.DELETE(ownerRequest("DELETE"), saved.id)).status, 503);
-  assert.deepEqual((await (await f.handlers.ADMIN_GET(ownerRequest())).json()).requests, []);
+  const details = valid({ name: "Private Customer", email: "private-customer@example.test", description: "Private description" });
+  const saved = await create(f, details);
+  f.bucket.beforeDelete = async (keys) => {
+    // An object-store bulk deletion may fail after deleting only part of the batch.
+    f.objects.delete(keys[0]);
+    throw new Error("Synthetic partial bucket deletion failure");
+  };
+  const interrupted = await f.handlers.DELETE(ownerRequest("DELETE"), saved.id);
+  assert.equal(interrupted.status, 503);
+  assert.match(interrupted.headers.get("cache-control"), /private.*no-store/);
+  const interruptedData = await interrupted.json();
+  assert.equal(interruptedData.deletionPending, true);
+  assert.match(interruptedData.error, /Terminer la suppression/);
+  const refreshed = createTradeInHandlers(f.env);
+  const response = await refreshed.ADMIN_GET(ownerRequest());
+  const list = await response.json();
+  assert.deepEqual(list.requests, []);
+  assert.deepEqual(list.pendingDeletions, [{ id: saved.id, reference: saved.reference }]);
+  assert.match(response.headers.get("cache-control"), /private.*no-store/);
+  for (const privateValue of [details.name, details.email, details.description, details.model, "object_key", "images"]) {
+    assert.equal(JSON.stringify(list).includes(privateValue), false, privateValue);
+  }
+  assert.equal((await refreshed.ADMIN_GET(ownerRequest("GET", VISITOR))).status, 403);
+  assert.equal((await refreshed.ADMIN_GET(ownerRequest("GET", {}))).status, 401);
   assert.equal((await f.handlers.IMAGE_GET(ownerRequest(), saved.id, "front")).status, 404);
   assert.equal(f.sqlite.prepare("SELECT details FROM trade_in_requests WHERE id = ?").get(saved.id).details, "{}");
   assert.equal(f.sqlite.prepare("SELECT count(*) n FROM trade_in_images").get().n, 2);
+  assert.equal(f.objects.size, 1);
   f.bucket.beforeDelete = undefined;
-  assert.equal((await f.handlers.DELETE(ownerRequest("DELETE"), saved.id)).status, 200);
+  const pendingId = list.pendingDeletions[0].id;
+  assert.equal((await refreshed.DELETE(ownerRequest("DELETE"), pendingId)).status, 200);
+  assert.equal((await refreshed.DELETE(ownerRequest("DELETE"), pendingId)).status, 200);
   assert.equal(f.objects.size, 0);
+  assert.equal(f.sqlite.prepare("SELECT count(*) n FROM trade_in_images").get().n, 0);
+  assert.deepEqual(await (await refreshed.ADMIN_GET(ownerRequest())).json(), { requests: [], pendingDeletions: [] });
+  assert.equal((await refreshed.POST(post(details))).status, 410);
+  f.sqlite.close();
+});
+
+test("a database failure after removing photos preserves a purge receipt until final cleanup succeeds", async () => {
+  const f = fixtures();
+  const saved = await create(f);
+  let batches = 0;
+  const failing = createTradeInHandlers({ ...f.env, DB: { ...f.db, async batch(statements) {
+    if (++batches === 2) throw new Error("Synthetic final transaction failure");
+    return f.db.batch(statements);
+  } } });
+  const interrupted = await failing.DELETE(ownerRequest("DELETE"), saved.id);
+  assert.equal(interrupted.status, 503);
+  assert.equal((await interrupted.json()).deletionPending, true);
+  assert.equal(f.objects.size, 0);
+  const refreshed = await (await f.handlers.ADMIN_GET(ownerRequest())).json();
+  assert.deepEqual(refreshed.pendingDeletions, [{ id: saved.id, reference: saved.reference }]);
+  assert.deepEqual(refreshed.requests, []);
+  assert.equal((await f.handlers.DELETE(ownerRequest("DELETE"), refreshed.pendingDeletions[0].id)).status, 200);
+  assert.deepEqual(await (await f.handlers.ADMIN_GET(ownerRequest())).json(), { requests: [], pendingDeletions: [] });
   assert.equal(f.sqlite.prepare("SELECT count(*) n FROM trade_in_images").get().n, 0);
   f.sqlite.close();
 });

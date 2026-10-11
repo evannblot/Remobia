@@ -34,3 +34,5 @@ export type TradeInRequest = Omit<TradeInDetails, "website" | "consent" | "reque
   createdAt: string;
   images: { side: "front" | "back" | "additional1" | "additional2"; url: string }[];
 };
+/** A purge receipt deliberately contains no customer details or photo references. */
+export type TradeInPendingDeletion = Pick<TradeInRequest, "id" | "reference">;
