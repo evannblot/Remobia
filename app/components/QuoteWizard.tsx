@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
@@ -390,6 +391,7 @@ export default function QuoteWizard({ initialIssue, onClose }: { initialIssue?: 
               <legend>Qu’est-ce qui compte pour vous ?</legend>
               <div className="qw-quality-options">{qualityOptions.map((option) => <label key={option.value} className={`qw-radio-card${form.quality === option.value ? " is-selected" : ""}`}><input type="radio" name={`${id}-quality`} value={option.value} checked={form.quality === option.value} onChange={() => update("quality", option.value)} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</div>
               <p className="qw-field-help">Une préférence pour orienter notre conseil. Les options possibles dépendront de votre appareil.</p>
+              <Link className="qw-parts-guide" href="/qualite-des-pieces" target="_blank" rel="noopener noreferrer">Comprendre la qualité des pièces<span className="qw-parts-guide-note"> · nouvel onglet</span></Link>
             </fieldset>
             <div className="qw-field qw-handoff-field">
               <label htmlFor={`${id}-handoff`}>Votre préférence de prise en charge</label>

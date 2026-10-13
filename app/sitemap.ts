@@ -6,5 +6,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Only canonical, indexable service pages belong in this sitemap.
   // Do not fabricate modification dates or expose owner-only routes.
-  return ["/", "/telephones", "/reprise"].map((path) => ({ url: siteUrl(path) }));
+  return ["/", "/telephones", "/reprise", "/qualite-des-pieces"].map((path) => ({ url: siteUrl(path) }));
 }

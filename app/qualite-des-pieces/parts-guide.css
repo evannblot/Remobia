@@ -1,0 +1,123 @@
+.parts-guide-site { --parts-text: #615962; }
+.parts-guide-site .parts-guide-main { padding-top: 0; }
+body.remobia-site .parts-guide-site .parts-hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(36px, 6vw, 96px); align-items: center; padding-block: 68px 54px; }
+.parts-hero .eyebrow { font-size: 12px; margin-bottom: 22px; letter-spacing: .12em; }
+.parts-hero h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(44px, 5vw, 75px); letter-spacing: -.055em; line-height: 1.06; font-weight: 500; }
+.parts-hero h1 span { font-style: italic; font-weight: 400; }
+.parts-hero-description { max-width: 650px; margin-top: 26px; margin-bottom: 28px; font-size: 18px; line-height: 1.65; color: var(--parts-text); }
+body.remobia-site .parts-guide-site .parts-quote-button { min-height: 50px; font-size: 15px; white-space: normal; text-align: left; gap: 15px; padding: 14px 19px; }
+.parts-quote-button svg { flex-shrink: 0; }
+.parts-start-note { background: var(--sage); border: 1px solid #c8d8cd; border-radius: 14px; padding: clamp(25px, 3vw, 42px); }
+.parts-note-index { display: block; font-size: 12px; letter-spacing: .08em; color: #5d6260; margin-bottom: 35px; }
+.parts-start-note h2 { font-size: 27px; letter-spacing: -.035em; line-height: 1.2; margin-bottom: 18px; }
+.parts-start-note p { font-size: 16px; line-height: 1.75; color: #4e5751; }
+.parts-start-note a { display: flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 22px; font-size: 15px; font-weight: 600; }
+.parts-start-note a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.parts-chapters { display: flex; flex-wrap: wrap; gap: 10px; padding-block: 0 34px; border-bottom: 1px solid var(--line); }
+.parts-chapters a { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 10px 15px; border: 1px solid var(--line); border-radius: 40px; background: var(--white); color: var(--ink); font-size: 15px; transition: border-color .15s, background .15s; }
+.parts-chapters a:hover { background: var(--sage); border-color: #a8b7ac; }
+.parts-chapters a svg { flex-shrink: 0; }
+.parts-rating-key { padding: 24px 0 0; color: var(--parts-text); }
+.parts-rating-key h2 { font-size: 20px; line-height: 1.5; letter-spacing: -.025em; margin-bottom: 10px; }
+.parts-rating-key p { font-size: 15px; line-height: 1.85; }
+.parts-rating-key p + p { margin-top: 8px; max-width: 890px; }
+.parts-rating-key strong { color: var(--ink); }
+.parts-rating { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); }
+.parts-stars { display: inline-flex; gap: 2px; color: #b7acba; }
+.parts-stars .is-filled { color: #6c5268; fill: #6c5268; }
+.parts-type-ratings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-block: 20px; padding: 0; list-style: none; }
+.parts-type-ratings li { display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); padding: 15px; min-width: 0; }
+.parts-type-ratings strong { font-size: 15px; line-height: 1.55; font-weight: 500; }
+.parts-section { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 2fr); gap: clamp(32px, 5vw, 80px); padding-block: 54px; border-bottom: 1px solid var(--line); scroll-margin-top: 105px; }
+.parts-section-heading { min-width: 0; }
+.parts-section-number { display: inline-block; font-size: 14px; letter-spacing: .07em; color: #776d79; margin-bottom: 16px; }
+.parts-section-heading h2 { font-size: 29px; line-height: 1.25; letter-spacing: -.035em; }
+.parts-section-heading h2 span { font-weight: 400; color: var(--parts-text); }
+.parts-section-body { min-width: 0; }
+.parts-section-body > p, .parts-provenance p { font-size: 16px; line-height: 1.8; color: var(--parts-text); }
+.parts-section-body > p + p, .parts-provenance p + p { margin-top: 14px; }
+.parts-section-body strong { font-weight: 600; color: var(--ink); }
+.parts-screen-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-block: 26px; }
+.parts-screen-options article { border: 1px solid var(--line); border-radius: 10px; background: var(--white); padding: 21px 18px; min-width: 0; }
+.parts-screen-options .parts-screen-preferred { background: #e9eee7; border-color: #c4d2c7; }
+.parts-card-kicker { display: block; color: #776d79; font-size: 11px; letter-spacing: .07em; margin-bottom: 17px; }
+.parts-screen-options h3 { font-size: 21px; letter-spacing: -.025em; margin-bottom: 12px; font-weight: 600; }
+.parts-screen-options .parts-rating { margin-bottom: 13px; }
+.parts-screen-options p { font-size: 16px; line-height: 1.75; color: var(--parts-text); }
+.parts-provenance { padding-block: 8px 4px; }
+.parts-provenance h3 { font-size: 20px; line-height: 1.4; font-weight: 600; margin-bottom: 12px; letter-spacing: -.025em; }
+.parts-advice { border-left: 3px solid var(--coral); border-radius: 0 8px 8px 0; background: #eee8e1; padding: 21px 24px; margin-block: 23px; }
+.parts-advice .parts-advice-label { color: var(--ink); font-size: 14px; line-height: 1.3; font-weight: 650; margin-bottom: 9px; }
+.parts-advice p { color: #514953; font-size: 16px; line-height: 1.75; }
+.parts-section-body > .parts-note { font-size: 15px; line-height: 1.8; margin-bottom: 24px; }
+.parts-safety-note { padding: 17px 20px; border: 1px solid #dbc3bb; border-radius: 8px; background: #f4e8e2; }
+.parts-questions { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 2fr); gap: clamp(32px, 5vw, 80px); padding-block: 54px; border-bottom: 1px solid var(--line); }
+.parts-questions .eyebrow { font-size: 12px; margin-bottom: 15px; }
+.parts-questions h2 { font-size: 33px; letter-spacing: -.035em; }
+.parts-faq-list details { border-bottom: 1px solid var(--line); }
+.parts-faq-list details:first-child { border-top: 1px solid var(--line); }
+.parts-faq-list summary, .parts-sources summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; list-style: none; cursor: pointer; min-height: 52px; padding-block: 20px; font-size: 16px; line-height: 1.6; font-weight: 500; }
+.parts-faq-list summary::-webkit-details-marker, .parts-sources summary::-webkit-details-marker { display: none; }
+.parts-faq-list summary svg, .parts-sources summary svg { flex-shrink: 0; transition: transform .15s; }
+.parts-faq-list details[open] summary svg, .parts-sources details[open] summary svg { transform: rotate(180deg); }
+.parts-faq-list details p { font-size: 16px; line-height: 1.8; color: var(--parts-text); padding: 0 28px 21px 0; }
+.parts-end { display: flex; align-items: center; justify-content: space-between; gap: 40px; padding-block: 54px 36px; }
+.parts-end .eyebrow { font-size: 12px; margin-bottom: 17px; }
+.parts-end h2 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 3.3vw, 43px); line-height: 1.2; font-weight: 400; letter-spacing: -.04em; }
+.parts-end p:not(.eyebrow) { color: var(--parts-text); font-size: 16px; max-width: 560px; line-height: 1.75; margin-top: 17px; }
+.parts-end > .parts-quote-button { flex-shrink: 0; }
+.parts-sources { padding-block: 0 36px; color: var(--parts-text); }
+.parts-sources details { border-top: 1px solid var(--line); }
+.parts-sources summary { justify-content: flex-start; font-size: 14px; padding-block: 14px; }
+.parts-sources p { font-size: 14px; line-height: 1.9; max-width: 850px; }
+.parts-sources a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.parts-guide-site :where(a, button, summary):focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.parts-quote-dialog .dialog-close { min-width: 44px; min-height: 44px; }
+
+@media (max-width: 1050px) {
+  body.remobia-site .parts-guide-site .parts-hero { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 30px; }
+  .parts-section, .parts-questions { grid-template-columns: minmax(0, .7fr) minmax(0, 1.5fr); gap: 30px; }
+  .parts-screen-options { grid-template-columns: minmax(0, 1fr); }
+  .parts-screen-options article { padding: 23px; }
+  .parts-type-ratings { grid-template-columns: minmax(0, 1fr); }
+  .parts-type-ratings li { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 16px; row-gap: 8px; }
+  .parts-card-kicker { margin-bottom: 9px; }
+  .parts-end { align-items: flex-start; flex-direction: column; gap: 24px; }
+}
+
+@media (max-width: 720px) {
+  body.remobia-site .parts-guide-site .parts-hero { grid-template-columns: minmax(0, 1fr); padding-block: 35px 28px; gap: 28px; }
+  .parts-hero h1 { font-size: clamp(41px, 10vw, 59px); }
+  .parts-hero .eyebrow { font-size: 12px; line-height: 1.7; margin-bottom: 18px; }
+  .parts-hero-description { font-size: 17px; line-height: 1.75; margin-top: 22px; margin-bottom: 23px; }
+  body.remobia-site .parts-guide-site .parts-quote-button { font-size: 16px; min-height: 50px; padding: 14px 16px; justify-content: space-between; }
+  .parts-hero .parts-quote-button, .parts-end > .parts-quote-button { width: 100%; }
+  .parts-start-note { padding: 24px; }
+  .parts-note-index { font-size: 12px; margin-bottom: 23px; }
+  .parts-start-note h2 { font-size: 26px; }
+  .parts-start-note a { font-size: 16px; }
+  .parts-chapters { gap: 8px; padding-block: 0 26px; }
+  .parts-chapters a { font-size: 16px; min-height: 46px; padding-inline: 13px; }
+  .parts-section, .parts-questions { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-block: 35px; scroll-margin-top: 94px; }
+  .parts-section-number { margin-bottom: 11px; }
+  .parts-rating-key p { font-size: 16px; }
+  .parts-type-ratings strong, .parts-rating { font-size: 16px; }
+  .parts-section-heading h2 { font-size: 29px; }
+  .parts-screen-options { margin-block: 23px; }
+  .parts-screen-options article { padding: 22px; }
+  .parts-card-kicker { font-size: 12px; }
+  .parts-advice { padding: 19px 20px; margin-block: 21px; }
+  .parts-advice .parts-advice-label { font-size: 16px; }
+  .parts-section-body > .parts-note { font-size: 16px; }
+  .parts-safety-note { padding: 17px 19px; }
+  .parts-questions { gap: 23px; }
+  .parts-faq-list summary { padding-block: 18px; }
+  .parts-faq-list details p { padding-right: 0; }
+  .parts-end { padding-block: 35px 26px; gap: 24px; }
+  .parts-sources { padding-bottom: 29px; }
+  .parts-sources summary, .parts-sources p { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parts-chapters a, .parts-faq-list summary svg, .parts-sources summary svg { transition: none; }
+}

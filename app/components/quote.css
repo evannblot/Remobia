@@ -150,3 +150,20 @@
   .quote-wizard *, .quote-wizard *::before, .quote-wizard *::after { transition: none !important; scroll-behavior: auto !important; }
   .qw-spinner { animation-duration: 1.8s; }
 }
+.qw-parts-guide {
+  display: inline-block;
+  min-height: 44px;
+  margin-top: 6px;
+  padding-block: 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--qw-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.qw-parts-guide:hover { text-decoration-thickness: 2px; }
+.qw-parts-guide-note { font-size: 13px; }
+@media (max-width: 720px) {
+  .qw-parts-guide { font-size: 15px; }
+  .qw-parts-guide-note { font-size: 14px; }
+}
